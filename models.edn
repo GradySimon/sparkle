@@ -1,0 +1,49 @@
+[
+ {:model/name "night-costume"
+  :model/children
+     {:night-costume/left-sleeve
+         {:model/type :model.type/cylinder
+          :model/children
+             [{:model/type :model.type/ring
+               :model.ring/radius 10 ; placeholders
+               :model.ring/count 15}
+              {:model/type :model.type/ring
+               :model.ring/radius 10
+               :model.ring/count 15}
+              {:model/type :model.type/ring
+               :model.ring/radius 10 ;placeholder
+               :model.ring/count 15}
+              {:model/type :model.type/ring
+               :model.ring/radius 10 ;placeholder
+               :model.ring/count 15}
+              {:model/type :model.type/ring
+               :model.ring/radius 10 ;placeholder
+               :model.ring/count 15}]}
+      :night-costume/forehead-ring
+         {:model/type :model.type/ring
+          :model.ring/radius 3
+          :model.ring/count 24}
+      :night-costume/right-sleeve
+         {:model/type :model.type/cylinder
+          :model/children
+             [{:model/type :model.type/ring
+               :model.ring/radius 10 ; placeholders
+               :model.ring/count 15}
+              {:model/type :model.type/ring
+               :model.ring/radius 10
+               :model.ring/count 15}
+              {:model/type :model.type/ring
+               :model.ring/radius 10
+               :model.ring/count 15}
+              {:model/type :model.type/ring
+               :model.ring/radius 10
+               :model.ring/count 15}
+              {:model/type :model.type/ring
+               :model.ring/radius 10
+               :model.ring/count 15}]}}}
+ 
+ {:model/name "test-strip"
+  :model/type :model.type/strip
+  :model.strip/count 3
+  :model.strip/spaceing 60}
+]
