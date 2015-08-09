@@ -1,18 +1,13 @@
 (ns sparkle.core
-  (:require [clojure.browser.repl :as repl]
-            [clojure.edn :as edn]
-            [fipp.edn :as fipp]
+  (:require [clojure.edn :as edn]
+            [fipp.edn :refer [pprint]]
             [sparkle.mode :as mode]
-            [sparkle.color :as color]))
-
-;; (defonce conn
-;;   (repl/connect "http://localhost:9000/repl"))
+            [sparkle.color :as color])
+  (:gen-class))
 
 (def model-file-path "models.edn")
 
 (def selected-model "test-strip")
-
-(enable-console-print!)
 
 (println "Alive and kicking!")
 
@@ -28,9 +23,9 @@
   (if (not (contains? model :model/children))
     {:model-node model
      :mode-frame mode-frame
-     :pixels (mode model params env)}
+     :pixels (mode env model params)}
     
-    (let [child-mode-frames (mode model params env)
+    (let [child-mode-frames (mode env model params)
           child-models (model :model/child-models)]
       {:model-node (dissoc model :model/children)
        :mode-frame mode-frame
@@ -42,12 +37,12 @@
 
 (defn setup []
   (let [model (select-model selected-model (edn/read-string (slurp model-file-path)))]
-    {:model model))
+    {:model model}))
 
-(defn update [{:keys [model]}]
+(defn next-state [{:keys [model]}]
   ; specify initial mode and params
   ; provide env-map
-  (let [env {:time (.getTime (js/Date.))}]
+  (let [env {:time (System/currentTimeMillis)}]
     {:model model
      :mode mode/strip-blink
      :params {:on-color color/full-white
@@ -56,12 +51,17 @@
      :env env}))
 
 (defn render [{:keys [model mode params env]}]
-  (let [mode-tree (eval-mode model {:mode mode :params params} env)]
-    (fipp/pprint [mode-tree])))
+  (let [mode-tree (eval-mode env model {:mode mode :params params})]
+    (pprint [mode-tree])))
 
 (defn run []
   (let [initial-state (setup)]
-    (loop [state initial-state]
-      (render (update state)))))
+    (loop [last-state initial-state]
+      (let [current-state (next-state last-state)]
+        (render (next-state current-state))
+        (recur current-state)))))
 
-(run)
+(defn -main
+  "I don't do a whole lot ... yet."
+  [& args]
+  (run))

@@ -45,5 +45,6 @@
  {:model/name "test-strip"
   :model/type :model.type/strip
   :model.strip/count 3
-  :model.strip/spaceing 60}
+  :model.strip/spacing 60
+  :model.leaf/address {:pin 0 :offset 0}}
 ]

@@ -9,14 +9,14 @@
 ; which it gets from core/update
 
 
-(defn px-blink [period {:keys [on-color off-color]} time]
-  (if (= 0 (mod (/ time period) 2))
+(defn px-blink [time period on-color off-color]
+  (if (= 0 (mod (quot time period) 2))
     on-color
     off-color))
 
-(defn strip-blink [model {:keys [period on-color off-color] :as params} {:keys [time] :as env}]
-  (repeat (model :model/count)
-    {:mode px-blink :params params}))
+(defn strip-blink [{:keys [time] :as env} model {:keys [period on-color off-color] :as params}]
+  (repeat (model :model.strip/count)
+    (px-blink time period on-color off-color)))
 
 (defn mode-frame? [value]
   (and (contains? value :mode)
