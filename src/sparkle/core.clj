@@ -7,7 +7,7 @@
 
 (def model-file-path "models.edn")
 
-(def selected-model "test-strip")
+(def selected-model "test-installation")
 
 (println "Alive and kicking!")
 
@@ -26,14 +26,20 @@
      :pixels (mode env model params)}
     
     (let [child-mode-frames (mode env model params)
-          child-models (model :model/child-models)]
+          child-models (:model/children model)]
       {:model-node (dissoc model :model/children)
        :mode-frame mode-frame
        :children (cond
-                   (seq? child-models) (map #(eval-mode env %1 %2) child-models child-mode-frames)
-                   (map? child-models) (into {} (map (fn [{name model} mode-frame]
-                                                         {name (eval-mode env model mode-frame)})
-                                                     child-models child-mode-frames)))})))
+                   (sequential? child-models)
+                     (map #(eval-mode env %1 %2) child-models child-mode-frames)
+                   (map? child-models)
+                     (into {}
+                       (map (fn [child-name]
+                              {child-name (eval-mode
+                                            env
+                                            (child-name child-models)
+                                            (child-name child-mode-frames))})
+                            (keys child-models)))))})))
 
 (defn setup []
   (let [model (select-model selected-model (edn/read-string (slurp model-file-path)))]
@@ -44,7 +50,7 @@
   ; provide env-map
   (let [env {:time (System/currentTimeMillis)}]
     {:model model
-     :mode mode/strip-blink
+     :mode mode/test-installation-blink
      :params {:on-color color/full-white
               :off-color color/black
               :period 500}
