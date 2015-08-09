@@ -39,7 +39,7 @@
                                             env
                                             (child-name child-models)
                                             (child-name child-mode-frames))})
-                            (keys child-models)))))})))
+                            (keys child-models))))})))
 
 (defn setup []
   (let [model (select-model selected-model (edn/read-string (slurp model-file-path)))]
@@ -58,16 +58,25 @@
 
 (defn render [{:keys [model mode params env]}]
   (let [mode-tree (eval-mode env model {:mode mode :params params})]
-    (pprint [mode-tree])))
+    (pprint [mode-tree])
+    ))
 
 (defn run []
-  (let [initial-state (setup)]
-    (loop [last-state initial-state]
-      (let [current-state (next-state last-state)]
-        (render (next-state current-state))
-        (recur current-state)))))
+  (loop [last-state (setup)
+         cycle-start-time (System/currentTimeMillis)
+         frame-number 0]
+    (let [current-state (next-state last-state)
+          current-time (System/currentTimeMillis)
+          elapsed-cycle-time (- current-time cycle-start-time)]
+      (render (next-state current-state))
+      (if (> (- current-time cycle-start-time) 100)
+        ; Report frame rate, restart cycle
+        (let [frame-rate (quot 1000 (/ elapsed-cycle-time frame-number))]
+          (println "Frame rate:" frame-rate "Frames this cycle:" frame-number)
+          (recur current-state (System/currentTimeMillis) 0))
+        ; Otherwise, continue
+        (recur current-state cycle-start-time (inc frame-number))))))
 
 (defn -main
-  "I don't do a whole lot ... yet."
   [& args]
   (run))
