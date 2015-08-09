@@ -1,50 +1,86 @@
 [
  {:model/name "night-costume"
   :model/children
-     {:night-costume/left-sleeve
-         {:model/type :model.type/cylinder
-          :model/children
-             [{:model/type :model.type/ring
-               :model.ring/radius 10 ; placeholders
-               :model.ring/count 15}
-              {:model/type :model.type/ring
-               :model.ring/radius 10
-               :model.ring/count 15}
-              {:model/type :model.type/ring
-               :model.ring/radius 10 ;placeholder
-               :model.ring/count 15}
-              {:model/type :model.type/ring
-               :model.ring/radius 10 ;placeholder
-               :model.ring/count 15}
-              {:model/type :model.type/ring
-               :model.ring/radius 10 ;placeholder
-               :model.ring/count 15}]}
-      :night-costume/forehead-ring
-         {:model/type :model.type/ring
-          :model.ring/radius 3
-          :model.ring/count 24}
-      :night-costume/right-sleeve
-         {:model/type :model.type/cylinder
-          :model/children
-             [{:model/type :model.type/ring
-               :model.ring/radius 10 ; placeholders
-               :model.ring/count 15}
-              {:model/type :model.type/ring
-               :model.ring/radius 10
-               :model.ring/count 15}
-              {:model/type :model.type/ring
-               :model.ring/radius 10
-               :model.ring/count 15}
-              {:model/type :model.type/ring
-               :model.ring/radius 10
-               :model.ring/count 15}
-              {:model/type :model.type/ring
-               :model.ring/radius 10
-               :model.ring/count 15}]}}}
+   {:night-costume/left-sleeve
+     {:model/type :model.type/cylinder
+      :model/children
+       [{:model/type :model.type/ring
+         :model.ring/radius 10 ; placeholders
+         :model/count 15}
+        {:model/type :model.type/ring
+         :model.ring/radius 10
+         :model/count 15}
+        {:model/type :model.type/ring
+         :model.ring/radius 10 ;placeholder
+         :model/count 15}
+        {:model/type :model.type/ring
+         :model.ring/radius 10 ;placeholder
+         :model/count 15}
+        {:model/type :model.type/ring
+         :model.ring/radius 10 ;placeholder
+         :model/count 15}]}
+    :night-costume/forehead-ring
+     {:model/type :model.type/ring
+      :model.ring/radius 3
+      :model/count 24}
+    :night-costume/right-sleeve
+     {:model/type :model.type/cylinder
+      :model/children
+       [{:model/type :model.type/ring
+         :model.ring/radius 10 ; placeholders
+         :model/count 15}
+        {:model/type :model.type/ring
+         :model.ring/radius 10
+         :model/count 15}
+        {:model/type :model.type/ring
+         :model.ring/radius 10
+         :model/count 15}
+        {:model/type :model.type/ring
+         :model.ring/radius 10
+         :model/count 15}
+        {:model/type :model.type/ring
+         :model.ring/radius 10
+         :model/count 15}]}}}
  
  {:model/name "test-strip"
   :model/type :model.type/strip
-  :model.strip/count 3
+  :model/count 3
   :model.strip/spacing 60
   :model.leaf/address {:pin 0 :offset 0}}
+
+ {:model/name "test-cylinder"
+  :model/type :model.type/cylinder
+  :model/children
+   [{:model/type :model.type/ring
+     :model.ring/radius 10 ; placeholders
+     :model/count 6}
+    {:model/type :model.type/ring
+     :model.ring/radius 10
+     :model/count 6}]}
+ 
+ {:model/name "test-installation"
+  :model/children
+   {:test-installation/sleeve
+     {:model/type :model.type/cylinder
+      :model/children
+       [{:model/type :model.type/ring
+         :model.ring/radius 10 ; placeholders
+         :model/count 3}
+        {:model/type :model.type/ring
+         :model.ring/radius 10
+         :model/count 3}
+        {:model/type :model.type/ring
+         :model.ring/radius 10 ;placeholder
+         :model/count 3}
+        {:model/type :model.type/ring
+         :model.ring/radius 10 ;placeholder
+         :model/count 3}
+        {:model/type :model.type/ring
+         :model.ring/radius 10 ;placeholder
+         :model/count 3}]}
+    :test-installation/forehead-ring
+     {:model/type :model.type/ring
+      :model.ring/radius 3
+      :model/count 6}}}
+
 ]
