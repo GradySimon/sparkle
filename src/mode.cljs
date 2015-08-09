@@ -18,3 +18,7 @@
   (repeat (model :model/count)
     {:mode px-blink :params params}))
 
+(defn mode-frame? [value]
+  (and (contains? value :mode)
+       (contains? value :params)))
+
