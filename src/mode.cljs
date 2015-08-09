@@ -11,8 +11,8 @@
 
 (defn px-blink [period {:keys [on-color off-color]} time]
   (if (= 0 (mod (/ time period) 2))
-    (on-color)
-    (off-color)))
+    on-color
+    off-color))
 
 (defn strip-blink [model {:keys [period on-color off-color] :as params} {:keys [time] :as env}]
   (repeat (model :model/count)
