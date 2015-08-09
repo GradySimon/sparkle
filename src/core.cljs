@@ -1,7 +1,7 @@
 (ns sparkle.core
-  (:require [clojure.algo.generic.functor :only fmap]
-            [clojure.browser.repl :as repl]
+  (:require [clojure.browser.repl :as repl]
             [clojure.edn :as edn]
+            [fipp.edn :as fipp]
             [sparkle.mode :as mode]
             [sparkle.color :as color]))
 
@@ -25,15 +25,20 @@
 ;  :children [{:child-name {child}} | [{child}]]}
 
 (defn eval-mode [env model {:keys [mode params] :as mode-frame}]
-  (let [child-mode-frames (mode model params env)
-        chold-models (model :model/chold-models)]
+  (if (not (contains? model :model/children))
     {:model-node model
      :mode-frame mode-frame
-     :children (cond
-                 (seq? chold-models) (map #(eval-mode env %1 %2) chold-models child-mode-frames)
-                 (map? chold-models) (into {} (map (fn [{name model} mode-frame]
-                                                       {name (eval-mode env model mode-frame)})
-                                                   chold-models child-mode-frames)))}))
+     :pixels (mode model params env)}
+    
+    (let [child-mode-frames (mode model params env)
+          child-models (model :model/child-models)]
+      {:model-node (dissoc model :model/children)
+       :mode-frame mode-frame
+       :children (cond
+                   (seq? child-models) (map #(eval-mode env %1 %2) child-models child-mode-frames)
+                   (map? child-models) (into {} (map (fn [{name model} mode-frame]
+                                                         {name (eval-mode env model mode-frame)})
+                                                     child-models child-mode-frames)))})))
 
 (defn setup []
   (let [model (select-model selected-model (edn/read-string (slurp model-file-path)))]
@@ -51,5 +56,12 @@
      :env env}))
 
 (defn render [{:keys [model mode params env]}]
-  (let [evaluated-mode (eval-mode model {:mode mode :params params} env)]
-    ))
+  (let [mode-tree (eval-mode model {:mode mode :params params} env)]
+    (fipp/pprint [mode-tree])))
+
+(defn run []
+  (let [initial-state (setup)]
+    (loop [state initial-state]
+      (render (update state)))))
+
+(run)
