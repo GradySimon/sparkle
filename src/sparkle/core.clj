@@ -69,7 +69,7 @@
           current-time (System/currentTimeMillis)
           elapsed-cycle-time (- current-time cycle-start-time)]
       (render (next-state current-state))
-      (if (> (- current-time cycle-start-time) 100)
+      (if (> elapsed-cycle-time 100)
         ; Report frame rate, restart cycle
         (let [frame-rate (quot 1000 (/ elapsed-cycle-time frame-number))]
           (println "Frame rate:" frame-rate "Frames this cycle:" frame-number)
