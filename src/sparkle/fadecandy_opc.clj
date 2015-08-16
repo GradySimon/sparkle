@@ -1,6 +1,7 @@
 (ns sparkle.fadecandy-opc
   (:import (java.net Socket))
-  (:require [org.clojars.smee.binary.core :as b]))
+  (:require [gloss.core :as gloss]
+            [gloss.io :as gloss-io]))
 
 (def server-address
   {:host "localhost"
@@ -19,26 +20,29 @@
 (defn color-bytes [pixel]
   (map #(byte (min 255 %)) [(:r pixel) (:g pixel) (:b pixel)]))
 
-(def color
-  (b/ordered-map
+(gloss/defcodec color
+  (gloss/ordered-map
     :r :ubyte
     :g :ubyte
     :b :ubyte))
 
-(def set-color-packet
-  (b/ordered-map
+(gloss/defcodec set-color-packet
+  (gloss/ordered-map
     :channel-num :ubyte
-    :command (b/constant :ubyte 0)
-    :length :short-be
-    :pixels (b/repeated color)))
+    :command :ubyte
+    :pixels (gloss/finite-frame :int16-be
+              (gloss/repeated color :prefix :none))))
 
-(defn push-pixels [pixels]
-  "Takes a vector of pixels, packages them into a set-color
-   packet, and pushes them to the FadeCandy device."
-  (let [pixel-byte-count (* 3 (count pixels))]
-    (b/encode set-color-packet @fc-conn
-      {:channel-num 0
-       :command 0
-       :length pixel-byte-count
-       :pixels pixels})))
+(defn push-pixels [pixel-map]
+  "Takes a map of channel numbers to vectors of pixels, packages
+   them into a set-color packet, and pushes them to the FadeCandy
+   device."
+  (doseq [[channel-num pixels] pixel-map]
+    (let [pixel-byte-count (* 3 (count pixels))]
+      (println pixels)
+      (gloss-io/encode-to-stream set-color-packet @fc-conn
+        (seq
+          [{:channel-num channel-num
+            :command 0
+            :pixels pixels}])))))
 
