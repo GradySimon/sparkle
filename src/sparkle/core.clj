@@ -52,9 +52,9 @@
   (let [env {:time (System/currentTimeMillis)}]
     {:model model
      :mode mode/strip-blink
-     :params {:on-color {:r 127 :g 0 :b 127}
-              :off-color color/quarter-white
-              :period 500}
+     :params {:on-color {:r 156 :g 42 :b 0}
+              :off-color {:r 156 :g 42 :b 0}
+              :period 25}
      :env env}))
 
 (defn render [{:keys [model mode params env]}]
