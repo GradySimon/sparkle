@@ -4,7 +4,9 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.7.0"]
-                 [fipp "0.6.2"]]
+                 [org.clojure/algo.generic "0.1.2"]
+                 [fipp "0.6.2"]
+                 [gloss "0.2.5"]]
   :main ^:skip-aot sparkle.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

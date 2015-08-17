@@ -1,4 +1,6 @@
-(ns sparkle.mode)
+(ns sparkle.mode
+  (:require [clojure.algo.generic.functor :refer [fmap]]
+            [clojure.zip :as zip]))
 
 ; modes return either a seq or a map of these:
 ; {:mode mode-name
@@ -36,3 +38,56 @@
   (and (contains? value :mode)
        (contains? value :params)))
 
+(defn mode-tree-node? [value]
+  (and (contains? value :model-node)
+       (contains? value :mode-frame)
+       (and (not (contains? value :pixels)))))
+
+(defn mode-tree-node-children [mode-tree-node]
+  (cond
+    (contains? mode-tree-node :pixels) (seq (:pixels mode-tree-node))
+    (contains? mode-tree-node :children) (vals (:children mode-tree-node))))
+
+(defn make-mode-tree-node [node children]
+  (assoc node :children children))
+
+(defn mode-tree-zip [mode-tree]
+  "Returns a zipper for playing with mode-tree."
+  (zip/zipper
+    mode-tree-node?
+    mode-tree-node-children
+    make-mode-tree-node
+    mode-tree))
+
+; a pixel address map is a map of the form
+; {:channel-num1 {order-key1 [pixel1 pixel2 ..]
+;                 order-key2 [pixel3 pixel4 ..] ..}
+;  :channel-num2 {order-key1 [..] ..}
+;  ..}
+;
+; This needs to get flattened to
+; {:channel-num1 [pixel1 pixel2 pixel3 pixel4]
+;  :channel-num2 [..]
+;  ..}
+
+(defn flatten-pixel-map [pixel-address-map]
+  (fmap
+    (fn [channel-offset-map]
+      (let [sorted-pixel-segments (vals (into (sorted-map) channel-offset-map))]
+        (vec (reduce concat [] sorted-pixel-segments))))
+    pixel-address-map))
+
+(defn pixel-map [mode-tree]
+  "Traverses the mode-tree, builds a vector of pixels, suitable for pushing
+   to the device."
+  (let [zipped-tree (mode-tree-zip mode-tree)
+        leaf-nodes (map zip/node (filter (complement zip/branch?) ;filter only non-branch nodes
+                                   (take-while (complement zip/end?) ;take until the :end
+                                               (iterate zip/next zipped-tree))))]
+    (flatten-pixel-map
+      (reduce (fn [pixel-address-map node]
+                  (let [{:keys [channel order-key]} (get-in node [:model-node :model.leaf/address])
+                        pixels (vec (:pixels node))]
+                    (assoc-in pixel-address-map [channel order-key] pixels)))
+                {}
+                leaf-nodes))))

@@ -44,9 +44,9 @@
  
  {:model/name "test-strip"
   :model/type :model.type/strip
-  :model/count 3
-  :model.strip/spacing 60
-  :model.leaf/address {:pin 0 :offset 0}}
+  :model/count 36
+  :model.strip/density 60
+  :model.leaf/address {:channel 0 :order-key 0}}
 
  {:model/name "test-cylinder"
   :model/type :model.type/cylinder
