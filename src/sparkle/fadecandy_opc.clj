@@ -39,7 +39,6 @@
    device."
   (doseq [[channel-num pixels] pixel-map]
     (let [pixel-byte-count (* 3 (count pixels))]
-      (println pixels)
       (gloss-io/encode-to-stream set-color-packet @fc-conn
         (seq
           [{:channel-num channel-num
