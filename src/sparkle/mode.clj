@@ -11,6 +11,19 @@
 ; which it gets from core/update
 
 
+(defmulti blink 
+  (fn [env model params]
+    (:model/type model))
+
+(defmethod blink :model.type/strip [{:keys [time] :as env} model {:keys [period on-color off-color] :as params}]
+  (repeat (model :model/count)
+    (px-blink time period on-color off-color))))
+
+(defmethod blink :model.type/cylinder [{:keys [time] :as env} model params]
+  (for [child-ring (:model/children model)]
+    {:mode strip-blink
+     :params params}))
+
 (defn px-blink [time period on-color off-color]
   (if (= 0 (mod (quot time period) 2))
     on-color
@@ -33,6 +46,8 @@
    :test-installation/forehead-ring
     {:mode strip-blink
      :params params}})
+
+(defrecord ModeFrame [mode params])
 
 (defn mode-frame? [value]
   (and (contains? value :mode)
