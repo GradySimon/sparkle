@@ -33,8 +33,8 @@
   (gloss/ordered-map
     :channel-num :ubyte
     :command :ubyte
-    :pixels (gloss/finite-frame :int16-be
-              (gloss/repeated color :prefix :none))))
+    :length :int16-be
+    :pixels (gloss/repeated color :prefix :none)))
 
 (defn push-pixels [pixel-map]
   "Takes a map of channel numbers to vectors of pixels, packages
@@ -46,11 +46,13 @@
         (seq
           [{:channel-num channel-num
             :command 0
+            :length pixel-byte-count
             :pixels pixels}]))
       (println (seq (.array (gloss-io/contiguous
                         (gloss-io/encode set-color-packet
                           {:channel-num channel-num
                            :command 0
+                           :length pixel-byte-count
                            :pixels pixels}))))))))
 
 (defn start-pushing-pixels [pixel-chan]
