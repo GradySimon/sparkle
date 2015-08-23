@@ -48,6 +48,7 @@
             :command 0
             :length pixel-byte-count
             :pixels pixels}]))
+      (.flush @fc-conn)
       (println (seq (.array (gloss-io/contiguous
                         (gloss-io/encode set-color-packet
                           {:channel-num channel-num
