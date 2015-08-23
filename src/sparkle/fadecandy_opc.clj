@@ -46,7 +46,12 @@
         (seq
           [{:channel-num channel-num
             :command 0
-            :pixels pixels}])))))
+            :pixels pixels}]))
+      (println (seq (.array (gloss-io/contiguous
+                        (gloss-io/encode set-color-packet
+                          {:channel-num channel-num
+                           :command 0
+                           :pixels pixels}))))))))
 
 (defn start-pushing-pixels [pixel-chan]
   (go-loop []

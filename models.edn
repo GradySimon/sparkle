@@ -44,7 +44,7 @@
  
  {:model/name "test-strip"
   :model/type :model.type/strip
-  :model/count 36
+  :model/count 3
   :model.strip/density 60
   :model.leaf/address {:channel 0 :order-key 0}}
 
