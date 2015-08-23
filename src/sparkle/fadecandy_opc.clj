@@ -1,6 +1,9 @@
 (ns sparkle.fadecandy-opc
   (:import (java.net Socket))
-  (:require [gloss.core :as gloss]
+  (:require [clojure.core.async :as a
+             :refer [>! <! >!! <!! go go-loop chan buffer close! thread
+                     alt! alts! alts!! timeout]]
+            [gloss.core :as gloss]
             [gloss.io :as gloss-io]))
 
 (def server-address
@@ -45,3 +48,8 @@
             :command 0
             :pixels pixels}])))))
 
+(defn start-pushing-pixels [pixel-chan]
+  (go-loop []
+    (let [pixels (<! pixel-chan)]
+      (push-pixels pixels)
+      (recur))))
