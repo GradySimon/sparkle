@@ -4,7 +4,7 @@
              :refer [>! <! >!! <!! go go-loop chan buffer close! thread
                      alt! alts! alts!! timeout]]
             [clojure.tools.logging :as log]
-            [fipp.edn :refer [pprint]]
+            [fipp.edn :as fipp]
             [sparkle.mode :as mode]
             [sparkle.color :as color]
             [sparkle.fadecandy-opc :as fc])
@@ -49,8 +49,16 @@
                             (keys child-models))))})))
 
 (defn setup []
-  (let [model (select-model selected-model (edn/read-string (slurp model-file-path)))]
-    {:model model}))
+  (let [model (select-model selected-model (edn/read-string (slurp model-file-path)))
+        env {:time (System/currentTimeMillis)}]
+    (map->State 
+      {:env env
+       :model model
+       :mode-frame 
+         {:mode mode/strip-blink
+          :params {:on-color {:r 0 :g 156 :b 42}
+                   :off-color {:r 0 :g 42 :b 156}
+                   :period 250}}})))
 
 ; This is where any automatic updates to env should happen.
 (defn next-state 
@@ -59,11 +67,10 @@
     (map->State 
       {:env env
        :model model
-       :mode-frame 
-         {:mode mode/strip-blink
-          :params {:on-color {:r 156 :g 42 :b 0}
-                   :off-color {:r 0 :g 42 :b 156}
-                   :period 250}}})))
+       :mode-frame mode-frame})))
+
+(defn report-framerate [framerate]
+  nil)
 
 (defn log-framerate [period]
   (fn [step]
@@ -73,50 +80,60 @@
         ([] (step))
         ([accum] (step accum))
         ([accum frame] 
-          println
           (let [current-time (System/currentTimeMillis)
                 elapsed-cycle-time (- current-time @cycle-start-time)]
             (if (> elapsed-cycle-time period)
               (let [framerate (quot 1000 (/ elapsed-cycle-time @frame-count))]
-                (println "Framerate:" framerate)
+                (report-framerate framerate)
                 (reset! cycle-start-time (System/currentTimeMillis))
                 (reset! frame-count 0))
               (swap! frame-count inc))
             (step accum frame)))))))
 
-
-(defmulti update-state 
-  (fn [command state] (:type command)))
-
-(defmethod update-state :stop [command state]
-  state)
-
-(defmethod update-state :render [command state]
-  (next-state state))
+(defn edit-state [{:keys [path value]} state]
+  (assoc-in state path value))
 
 (defn render-loop [command-chan render-chan]
-  (go-loop [last-state (setup)]
-    (let [command (alt!
+  (go-loop [last-state (setup)
+            status :running]
+    (let [state (next-state last-state)
+          command 
+            (if (= status :running)
+                  (alt!
                     command-chan ([command] command)
                     :default {:type :render})
-          state (update-state command last-state)]
+                  (<! command-chan))]
       (case (:type command)
-        :stop nil
+        :stop (recur state :stopped)
+        :start (recur state :running)
+        :edit (recur (edit-state command state) status)
+        :report (do
+                  (fipp/pprint state)
+                  (recur state status))
         :render (do
                   (>! render-chan state)
-                  (recur state))
-        (recur state)))))
+                  (recur state status))
+        (recur state status)))))
 
 (def render-pipeline
   (comp
     (map eval-state)
     (map mode/pixel-map)
-    (log-framerate 1000)))
+    ;(log-framerate 1000)
+    ))
+
+(def command-chan (chan (buffer 10)))
+
+(def render-chan (chan (buffer 1) render-pipeline))
+
+(defn init []
+  (fc/start-pushing-pixels render-chan)
+  (render-loop command-chan render-chan)
+  :success)
 
 (defn -main
   [& args]
-  (let [command-chan (chan (buffer 10))
-        render-chan (chan (buffer 1) render-pipeline)
+  (let [render-chan (chan (buffer 1) render-pipeline)
         pixel-pusher-chan (fc/start-pushing-pixels render-chan)
         render-loop-chan (render-loop command-chan render-chan)]
     (.addShutdownHook (Runtime/getRuntime)
@@ -125,5 +142,17 @@
                   (>!! command-chan {:type :stop}))))
     (<!! render-loop-chan)
     (<!! pixel-pusher-chan)))
+
+(defn edit [path value]
+  (>!! command-chan {:type :edit :path path :value value}))
+
+(defn start []
+  (>!! command-chan {:type :start}))
+
+(defn stop []
+  (>!! command-chan {:type :stop}))
+
+(defn report []
+  (>!! command-chan {:type :report}))
 
 (println "Alive and kicking!")
