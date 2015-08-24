@@ -73,11 +73,12 @@
         ([] (step))
         ([accum] (step accum))
         ([accum frame] 
+          println
           (let [current-time (System/currentTimeMillis)
                 elapsed-cycle-time (- current-time @cycle-start-time)]
             (if (> elapsed-cycle-time period)
               (let [framerate (quot 1000 (/ elapsed-cycle-time @frame-count))]
-                (log/info "Framerate:" framerate)
+                (println "Framerate:" framerate)
                 (reset! cycle-start-time (System/currentTimeMillis))
                 (reset! frame-count 0))
               (swap! frame-count inc))
@@ -93,7 +94,7 @@
 (defmethod update-state :render [command state]
   (next-state state))
 
-(defn render-loop [command-chan pixel-chan]
+(defn render-loop [command-chan render-chan]
   (go-loop [last-state (setup)]
     (let [command (alt!
                     command-chan ([command] command)
@@ -102,7 +103,7 @@
       (case (:type command)
         :stop nil
         :render (do
-                  (>! pixel-chan (mode/pixel-map (eval-state state)))
+                  (>! render-chan state)
                   (recur state))
         (recur state)))))
 
@@ -110,20 +111,19 @@
   (comp
     (map eval-state)
     (map mode/pixel-map)
-    ;(log-framerate 1000)
-    ))
+    (log-framerate 1000)))
 
 (defn -main
   [& args]
   (let [command-chan (chan (buffer 10))
-        pixel-chan (chan (buffer 1)) ;render-pipeline)
-        pixel-pusher-chan (fc/start-pushing-pixels pixel-chan)
-        render-loop-chan (render-loop command-chan pixel-chan)]
+        render-chan (chan (buffer 1) render-pipeline)
+        pixel-pusher-chan (fc/start-pushing-pixels render-chan)
+        render-loop-chan (render-loop command-chan render-chan)]
     (.addShutdownHook (Runtime/getRuntime)
       (Thread. (fn []
-                  (log/info "Recieved shutdown signal. Halting...")
+                  (println "\nRecieved shutdown signal. Halting...")
                   (>!! command-chan {:type :stop}))))
     (<!! render-loop-chan)
     (<!! pixel-pusher-chan)))
 
-(log/info "Alive and kicking!")
+(println "Alive and kicking!")
