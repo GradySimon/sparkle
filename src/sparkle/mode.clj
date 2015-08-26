@@ -90,7 +90,10 @@
 (defn mode-tree-node-children [mode-tree-node]
   (cond
     (contains? mode-tree-node :pixels) (seq (:pixels mode-tree-node))
-    (contains? mode-tree-node :children) (vals (:children mode-tree-node))))
+    (contains? mode-tree-node :children)
+      (cond
+        (map? (:children mode-tree-node)) (vals (:children mode-tree-node))
+        (sequential? (:children mode-tree-node)) (seq (:children mode-tree-node)))))
 
 (defn make-mode-tree-node [node children]
   (assoc node :children children))
@@ -127,20 +130,16 @@
     pixel-address-map))
 
 (defn merge-pixel-node [pixel-address-map node]
-  (println pixel-address-map node)
   (let [{:keys [channel order-key]} (get-in node [:model-node :model.leaf/address])
         pixels (vec (map scale-pixel (:pixels node)))]
-    (println channel order-key pixels)
     (assoc-in pixel-address-map [channel order-key] pixels)))
 
 (defn pixel-map [mode-tree]
   "Traverses the mode-tree, builds a vector of pixels, suitable for pushing
    to the device."
-  (println mode-tree)
   (let [zipped-tree (mode-tree-zip mode-tree)
         leaf-nodes (map zip/node (filter (complement zip/branch?) ;filter only non-branch nodes
                                    (take-while (complement zip/end?) ;take until the :end
                                                (iterate zip/next zipped-tree))))]
     (flatten-pixel-map
-      (println leaf-nodes)
       (reduce merge-pixel-node {} leaf-nodes))))
