@@ -1,52 +1,73 @@
 [
+ 
+ {:model/name "test-strip"
+  :model/type :model.type/strip
+  :model/count 48
+  :model.strip/density 60
+  :model.leaf/address {:channel 0 :order-key 0}}
+ 
+ {:model/name "right-sleeve"
+  :model/type :model.type/cylinder
+  :model/children
+   [{:model/type :model.type/strip
+     :model/count 16
+     :model.leaf/address {:channel 0 :order-key 0}}
+    {:model/type :model.type/strip
+     :model/count 15
+     :model.leaf/address {:channel 0 :order-key 1}}
+    {:model/type :model.type/strip
+     :model/count 14
+     :model.leaf/address {:channel 0 :order-key 2}}
+    {:model/type :model.type/strip
+     :model/count 12
+     :model.leaf/address {:channel 1 :order-key 0}}
+    {:model/type :model.type/strip
+     :model/count 11
+     :model.leaf/address {:channel 1 :order-key 1}}
+    {:model/type :model.type/strip
+     :model/count 10
+   :model.leaf/address {:channel 1 :order-key 2}}
+    {:model/type :model.type/strip
+     :model/count 10
+     :model.leaf/address {:channel 1 :order-key 3}}]}
+
+
  {:model/name "night-costume"
   :model/children
    {:night-costume/left-sleeve
      {:model/type :model.type/cylinder
       :model/children
-       [{:model/type :model.type/ring
-         :model.ring/radius 10 ; placeholders
+       [{:model/type :model.type/strip
+         :model/count 16}
+        {:model/type :model.type/strip
          :model/count 15}
-        {:model/type :model.type/ring
-         :model.ring/radius 10
-         :model/count 15}
-        {:model/type :model.type/ring
-         :model.ring/radius 10 ;placeholder
-         :model/count 15}
-        {:model/type :model.type/ring
-         :model.ring/radius 10 ;placeholder
-         :model/count 15}
-        {:model/type :model.type/ring
-         :model.ring/radius 10 ;placeholder
-         :model/count 15}]}
-    :night-costume/forehead-ring
-     {:model/type :model.type/ring
-      :model.ring/radius 3
-      :model/count 24}
+        {:model/type :model.type/strip
+         :model/count 14}
+        {:model/type :model.type/strip
+         :model/count 12}
+        {:model/type :model.type/strip
+         :model/count 11}
+        {:model/type :model.type/strip
+         :model/count 10}
+        {:model/type :model.type/strip
+         :model/count 10}]}
     :night-costume/right-sleeve
      {:model/type :model.type/cylinder
       :model/children
-       [{:model/type :model.type/ring
-         :model.ring/radius 10 ; placeholders
+       [{:model/type :model.type/strip
+         :model/count 16}
+        {:model/type :model.type/strip
          :model/count 15}
-        {:model/type :model.type/ring
-         :model.ring/radius 10
-         :model/count 15}
-        {:model/type :model.type/ring
-         :model.ring/radius 10
-         :model/count 15}
-        {:model/type :model.type/ring
-         :model.ring/radius 10
-         :model/count 15}
-        {:model/type :model.type/ring
-         :model.ring/radius 10
-         :model/count 15}]}}}
- 
- {:model/name "test-strip"
-  :model/type :model.type/strip
-  :model/count 3
-  :model.strip/density 60
-  :model.leaf/address {:channel 0 :order-key 0}}
+        {:model/type :model.type/strip
+         :model/count 14}
+        {:model/type :model.type/strip
+         :model/count 12}
+        {:model/type :model.type/strip
+         :model/count 11}
+        {:model/type :model.type/strip
+         :model/count 10}
+        {:model/type :model.type/strip
+         :model/count 10}]}}}
 
  {:model/name "test-cylinder"
   :model/type :model.type/cylinder

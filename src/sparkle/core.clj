@@ -12,7 +12,7 @@
 
 (def model-file-path "models.edn")
 
-(def selected-model "test-strip")
+(def selected-model "right-sleeve")
 
 (defrecord State [env model mode-frame])
 
@@ -55,10 +55,8 @@
       {:env env
        :model model
        :mode-frame 
-         {:mode mode/strip-blink
-          :params {:on-color {:r 0 :g 156 :b 42}
-                   :off-color {:r 0 :g 42 :b 156}
-                   :period 250}}})))
+         {:mode mode/plasma
+          :params {}}})))
 
 ; This is where any automatic updates to env should happen.
 (defn next-state 

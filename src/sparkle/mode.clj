@@ -10,6 +10,50 @@
 ; eval-mode will also supply an env-map to each mode call, 
 ; which it gets from core/update
 
+(defmulti plasma
+  (fn [env model params]
+    (:model/type model)))
+
+; (defmethod plasma :model.type/strip
+;   [{:keys [time]} model {:keys [period]}]
+;   (let [count (:model/count model)]
+;     (for [x (range count)]
+;       {:r (* 0.609 (Math/sin (+ (* x 2) (/ time 1000))))
+;        :g (* 0.164 (Math/sin (+ (* x 2) (/ time 1000))))
+;        :b (* 0 (Math/sin (+ (* x 2) (/ time 1000))))})))
+
+; (defmethod math-christmas :model.type/strip
+;   [{:keys [time]} model {:keys [period]}]
+;   (let [count (:model/count model)
+;         scaled-time (/ time 10000)
+;         v (fn [x]
+;              (+ (Math/sin (+ (* 2 x) scaled-time))
+;                 (Math/sin (+ (* 10 (+ (* x (Math/sin (/ scaled-time 2)))
+;                                       (* 2 (Math/cos (/ scaled-time 3)))))
+;                              scaled-time))))]
+;     (for [x (range count)]
+;       {:r (* 0.60 (Math/sin (* (v (* x 0.1)) Math/PI)))
+;        :g (* 0.34 (Math/cos (* (v (* x 0.1)) Math/PI)))
+;        :b 0})))
+
+(defmethod plasma :model.type/strip
+  [{:keys [time]} model {:keys [period]}]
+  (let [count (:model/count model)
+        scaled-time (/ time 10000)
+        v (fn [x]
+             (+ (Math/sin (+ (* 2 x) scaled-time))
+                (Math/sin (+ (* 10 (+ (* x (Math/sin (/ scaled-time 2)))
+                                      (* 2 (Math/cos (/ scaled-time 3)))))
+                             scaled-time))))]
+    (for [x (range count)]
+      {:r (* 0.60 (Math/sin (* (v (* x 0.1)) Math/PI)))
+       :g (* 0.34 (Math/cos (* (v (* x 0.1)) Math/PI)))
+       :b 0})))
+
+(defmethod plasma :model.type/cylinder
+  [env model params]
+  (for [strip (:model/children model)]
+    {:mode plasma :params params}))
 
 (defn px-blink [time period on-color off-color]
   (if (= 0 (mod (quot time period) 2))
@@ -70,6 +114,11 @@
 ;  :channel-num2 [..]
 ;  ..}
 
+(defn scale-pixel [pixel]
+  (let [scale-fn (fn [value]
+                    (int (min 256 (max 0 (* 256 value)))))]
+    (fmap scale-fn pixel)))
+
 (defn flatten-pixel-map [pixel-address-map]
   (fmap
     (fn [channel-offset-map]
@@ -77,17 +126,21 @@
         (vec (reduce concat [] sorted-pixel-segments))))
     pixel-address-map))
 
+(defn merge-pixel-node [pixel-address-map node]
+  (println pixel-address-map node)
+  (let [{:keys [channel order-key]} (get-in node [:model-node :model.leaf/address])
+        pixels (vec (map scale-pixel (:pixels node)))]
+    (println channel order-key pixels)
+    (assoc-in pixel-address-map [channel order-key] pixels)))
+
 (defn pixel-map [mode-tree]
   "Traverses the mode-tree, builds a vector of pixels, suitable for pushing
    to the device."
+  (println mode-tree)
   (let [zipped-tree (mode-tree-zip mode-tree)
         leaf-nodes (map zip/node (filter (complement zip/branch?) ;filter only non-branch nodes
                                    (take-while (complement zip/end?) ;take until the :end
                                                (iterate zip/next zipped-tree))))]
     (flatten-pixel-map
-      (reduce (fn [pixel-address-map node]
-                  (let [{:keys [channel order-key]} (get-in node [:model-node :model.leaf/address])
-                        pixels (vec (:pixels node))]
-                    (assoc-in pixel-address-map [channel order-key] pixels)))
-                {}
-                leaf-nodes))))
+      (println leaf-nodes)
+      (reduce merge-pixel-node {} leaf-nodes))))
