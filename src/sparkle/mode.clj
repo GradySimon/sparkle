@@ -36,24 +36,34 @@
 ;        :g (* 0.34 (Math/cos (* (v (* x 0.1)) Math/PI)))
 ;        :b 0})))
 
+(def math-christmas
+  {:rgb-multipliers
+    {:r 0.6 :g 0.34 :b 0}})
+
 (defmethod plasma :model.type/strip
-  [{:keys [time]} model {:keys [period]}]
+  "See http://www.bidouille.org/prog/plasma"
+  [{:keys [time]} model {:keys [time-scale-factor rgb-multipliers y-val]}]
   (let [count (:model/count model)
-        scaled-time (/ time 10000)
-        v (fn [x]
+        scaled-time (/ time time-scale-factor)
+        v (fn [x y]
              (+ (Math/sin (+ (* 2 x) scaled-time))
                 (Math/sin (+ (* 10 (+ (* x (Math/sin (/ scaled-time 2)))
-                                      (* 2 (Math/cos (/ scaled-time 3)))))
-                             scaled-time))))]
-    (for [x (range count)]
-      {:r (* 0.60 (Math/sin (* (v (* x 0.1)) Math/PI)))
-       :g (* 0.34 (Math/cos (* (v (* x 0.1)) Math/PI)))
-       :b 0})))
+                                      (* y (Math/cos (/ scaled-time 3)))))
+                             scaled-time))
+                (let [cx (+ x (* 0.5 (Math/sin (/ scaled-time 5))))
+                      cy (+ y (* 0.5 (Math/cos (/ scaled-time 3))))]
+                      )))]
+    (for [x (range count)
+          :let [v-val (v (* x 0.1) y-val)]]
+        {:r (* (:r rgb-multipliers) (Math/sin (* v-val Math/PI)))
+         :g (* (:g rgb-multipliers) (Math/sin (+ (* v-val Math/PI) (* (/ 2 3) Math/PI))))
+         :b (* (:b rgb-multipliers) (Math/sin (+ (* v-val Math/PI) (* (/ 4 3) Math/PI))))})))
 
 (defmethod plasma :model.type/cylinder
   [env model params]
-  (for [strip (:model/children model)]
-    {:mode plasma :params params}))
+  (for [strip-num (range (count (:model/children model)))]
+    {:mode plasma 
+     :params (assoc-in params [:y-val] strip-num)}))
 
 (defn px-blink [time period on-color off-color]
   (if (= 0 (mod (quot time period) 2))
