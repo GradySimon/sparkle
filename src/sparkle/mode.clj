@@ -11,6 +11,7 @@
 ; which it gets from core/update
 
 (defmulti plasma
+  "See http://www.bidouille.org/prog/plasma"
   (fn [env model params]
     (:model/type model)))
 
@@ -37,11 +38,11 @@
 ;        :b 0})))
 
 (def math-christmas
-  {:rgb-multipliers
-    {:r 0.6 :g 0.34 :b 0}})
+  {:time-scale-factor 10000
+   :rgb-multipliers
+     {:r 0.33 :g 0.33 :b 0.33}})
 
 (defmethod plasma :model.type/strip
-  "See http://www.bidouille.org/prog/plasma"
   [{:keys [time]} model {:keys [time-scale-factor rgb-multipliers y-val]}]
   (let [count (:model/count model)
         scaled-time (/ time time-scale-factor)
@@ -52,9 +53,9 @@
                              scaled-time))
                 (let [cx (+ x (* 0.5 (Math/sin (/ scaled-time 5))))
                       cy (+ y (* 0.5 (Math/cos (/ scaled-time 3))))]
-                      )))]
+                      (Math/sin (+ 1 scaled-time (* 100 (+ (* cx cx) (* cy cy))))))))]
     (for [x (range count)
-          :let [v-val (v (* x 0.1) y-val)]]
+          :let [v-val (v (* x 0.025) (* y-val 0.025 ))]]
         {:r (* (:r rgb-multipliers) (Math/sin (* v-val Math/PI)))
          :g (* (:g rgb-multipliers) (Math/sin (+ (* v-val Math/PI) (* (/ 2 3) Math/PI))))
          :b (* (:b rgb-multipliers) (Math/sin (+ (* v-val Math/PI) (* (/ 4 3) Math/PI))))})))

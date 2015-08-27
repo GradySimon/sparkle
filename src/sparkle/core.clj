@@ -56,7 +56,7 @@
        :model model
        :mode-frame 
          {:mode mode/plasma
-          :params {}}})))
+          :params mode/math-christmas}})))
 
 ; This is where any automatic updates to env should happen.
 (defn next-state 
@@ -120,26 +120,14 @@
     ;(log-framerate 1000)
     ))
 
-(def command-chan (chan (buffer 10)))
+(defonce command-chan (chan (buffer 10)))
 
-(def render-chan (chan (buffer 1) render-pipeline))
+(defonce render-chan (chan (buffer 1) render-pipeline))
 
 (defn init []
   (fc/start-pushing-pixels render-chan)
   (render-loop command-chan render-chan)
   :success)
-
-(defn -main
-  [& args]
-  (let [render-chan (chan (buffer 1) render-pipeline)
-        pixel-pusher-chan (fc/start-pushing-pixels render-chan)
-        render-loop-chan (render-loop command-chan render-chan)]
-    (.addShutdownHook (Runtime/getRuntime)
-      (Thread. (fn []
-                  (println "\nRecieved shutdown signal. Halting...")
-                  (>!! command-chan {:type :stop}))))
-    (<!! render-loop-chan)
-    (<!! pixel-pusher-chan)))
 
 (defn edit [path value]
   (>!! command-chan {:type :edit :path path :value value}))
