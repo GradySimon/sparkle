@@ -24,14 +24,27 @@
 ;  :mode-frame {:mode mode :params params}
 ;  :children [{:child-name {child}} | [{child}]]}
 
+; To support stateful modes, there needs to be some means of persisting
+; a mode's state accross invokations of eval-state.
+; One way to do this is to pass each recursive call to eval-state a path
+; at which it can find its state in the previous eval tree 
+; 
+; Alternatively, just pass the state? Top level call gets the whole previous
+; tree. It traverses it in parallel with the model, passes it to each recursive
+; call.
+
+
 (defn eval-state 
-  [{env :env model :model {:keys [mode params] :as mode-frame} :mode-frame}]
+  [{env :env 
+    model :model 
+    {:keys [mode params mode-state] :as mode-frame} :mode-frame}
+    {prev-state :prev-state}]
   (if (not (contains? model :model/children))
     {:model-node model
      :mode-frame mode-frame
      :pixels (mode env model params)}
     
-    (let [child-mode-frames (mode env model params)
+    (let [child-mode-frames (mode env model params )
           child-models (:model/children model)]
       {:model-node (dissoc model :model/children)
        :mode-frame mode-frame

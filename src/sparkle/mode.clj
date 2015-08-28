@@ -40,6 +40,11 @@
 (def math-christmas
   {:time-scale-factor 10000
    :rgb-multipliers
+     {:r 0.74 :g 0.33 :b 0}})
+
+(def full-spectrum
+  {:time-scale-factor 10000
+   :rgb-multipliers
      {:r 0.33 :g 0.33 :b 0.33}})
 
 (defmethod plasma :model.type/strip
@@ -65,6 +70,12 @@
   (for [strip-num (range (count (:model/children model)))]
     {:mode plasma 
      :params (assoc-in params [:y-val] strip-num)}))
+
+(defn periodic-step [{:key [time]} model {:keys [period step-fn step-fn-params]} {:keys [last-step-time last-mode-frame step-fn-state]}]
+  (let [time-since-last (- time last-step-time)]
+    (if (< period time-since-last)
+      (step-fn env model step-fn-params step-fn-state)
+      last-mode-frame)))
 
 (defn px-blink [time period on-color off-color]
   (if (= 0 (mod (quot time period) 2))
