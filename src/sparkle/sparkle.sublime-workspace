@@ -1,0 +1,709 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"child",
+				"children"
+			],
+			[
+				"chil",
+				"children"
+			],
+			[
+				"mode",
+				"mode-tree-node"
+			],
+			[
+				"render",
+				"render-chan"
+			],
+			[
+				"current",
+				"current-state"
+			],
+			[
+				"update",
+				"update-state"
+			],
+			[
+				"curre",
+				"current-state"
+			],
+			[
+				"pixel",
+				"pixel-map"
+			],
+			[
+				"cy",
+				"cycle-start-time"
+			],
+			[
+				"frame",
+				"framerate"
+			],
+			[
+				"farme",
+				"frame-number"
+			],
+			[
+				"curren",
+				"currentTimeMillis"
+			],
+			[
+				"chann",
+				"channel-num"
+			],
+			[
+				"chan",
+				"channel-num"
+			],
+			[
+				"pix",
+				"pixel-map"
+			],
+			[
+				"sort",
+				"sorted-pixel-segments"
+			],
+			[
+				"max",
+				"max-pixel-offset"
+			],
+			[
+				"mode-tree",
+				"mode-tree"
+			],
+			[
+				"mdoe",
+				"mode-tree-node"
+			],
+			[
+				"chi",
+				"children"
+			],
+			[
+				"last-",
+				"last-time"
+			],
+			[
+				"test",
+				"ttest-installation"
+			],
+			[
+				"childr",
+				"child-ring"
+			],
+			[
+				"eval",
+				"evaluated-mode"
+			],
+			[
+				"ev",
+				"evaluated-mode"
+			],
+			[
+				"eval-e",
+				"evaluated-mode"
+			],
+			[
+				"tribe",
+				"tribe-pull-spec"
+			],
+			[
+				"player",
+				"player-pull-spec"
+			],
+			[
+				"season",
+				"season-pull-spec"
+			],
+			[
+				"def",
+				"defresource"
+			],
+			[
+				"plaer",
+				"player-pull-spec"
+			],
+			[
+				"pull",
+				"pull-spec"
+			],
+			[
+				"ep",
+				"episode-pull-spec"
+			],
+			[
+				"aliv",
+				"alive-players-reousrce"
+			],
+			[
+				"nex",
+				"next-episode-resource"
+			],
+			[
+				"key",
+				"key-transformer"
+			],
+			[
+				"eps",
+				"episode-uuid"
+			],
+			[
+				"epi",
+				"episode-uuid"
+			],
+			[
+				"handle",
+				"handle-ok"
+			],
+			[
+				"datomic",
+				"datomic-data"
+			],
+			[
+				"las",
+				"last-air-date"
+			],
+			[
+				"ne",
+				"next-episode"
+			],
+			[
+				"next",
+				"next-airdate"
+			],
+			[
+				"next-",
+				"next-episode"
+			],
+			[
+				"most-r",
+				"most-recent-airdate"
+			],
+			[
+				"valu",
+				"value-tranformer"
+			],
+			[
+				"dato",
+				"datomic-value"
+			],
+			[
+				"most",
+				"most-recent-episode-id"
+			],
+			[
+				"schema",
+				"schema-tx"
+			],
+			[
+				"epis",
+				"episodes"
+			],
+			[
+				"id",
+				"ident"
+			],
+			[
+				"value",
+				"valueType"
+			],
+			[
+				"Player",
+				"PlayerPickAdmin"
+			],
+			[
+				"Boolea",
+				"BooleanPickAdmin"
+			],
+			[
+				"Bool",
+				"BooleanPick"
+			],
+			[
+				"fanta",
+				"fantasy_player"
+			],
+			[
+				"fan",
+				"fantasy_player"
+			],
+			[
+				"fatnas",
+				"fantasy_app"
+			],
+			[
+				"fantasy",
+				"fantasy-app"
+			],
+			[
+				"requ",
+				"request"
+			],
+			[
+				"fantas",
+				"fantasy_player"
+			],
+			[
+				"crea",
+				"created"
+			],
+			[
+				"regis",
+				"registration_form"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "mode.clj",
+			"settings":
+			{
+				"buffer_size": 5192,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/grady/code/sparkle/sparkle.sublime-project",
+			"settings":
+			{
+				"buffer_size": 69,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/grady/code/sparkle/models.edn",
+			"settings":
+			{
+				"buffer_size": 3208,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 400.0,
+		"last_filter": "list",
+		"selected_items":
+		[
+			[
+				"list",
+				"Package Control: List Packages"
+			],
+			[
+				"rein",
+				"Indentation: Reindent Lines"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"log",
+				"git: log"
+			],
+			[
+				"mark",
+				"Markdown Preview: Preview in Browser"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"stat",
+				"git: status"
+			],
+			[
+				"gitstat",
+				"git: status"
+			],
+			[
+				"git diff",
+				"git: diff"
+			],
+			[
+				"git status",
+				"git: status"
+			],
+			[
+				"git inline",
+				"git: diff current file inline"
+			],
+			[
+				"git sav",
+				"GitSavvy: help"
+			],
+			[
+				"ins",
+				"Package Control: Install Package"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 475.0
+	},
+	"console":
+	{
+		"height": 126.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = 'eb2297e1a458f27d836c04bb0cbaf282' + 'd0e7a3098092775ccb37ca9d6b2e4b7d'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/Users/grady/code/sparkle",
+		"/Users/grady/code/sparkle/src",
+		"/Users/grady/code/sparkle/src/sparkle"
+	],
+	"file_history":
+	[
+		"/Users/grady/Library/Application Support/Sublime Text 3/Packages/User/EDN.sublime-settings",
+		"/Users/grady/Library/Application Support/Sublime Text 3/Packages/User/Clojure.sublime-settings",
+		"/Users/grady/Library/Application Support/Sublime Text 3/Packages/Default/Preferences.sublime-settings",
+		"/Users/grady/code/sparkle/src/mode.cljs",
+		"/Users/grady/code/sparkle/README.md",
+		"/Users/grady/code/sparkle/src/color.cljs",
+		"/Users/grady/code/sparkle/src/core.cljs",
+		"/Users/grady/code/sparkle/src/sparkle/core.cljs",
+		"/Users/grady/.gnupg/gpg.conf",
+		"/Users/grady/code/previously-on-survivor/.gitignore",
+		"/Users/grady/Library/Application Support/Sublime Text 3/Packages/User/JSON.sublime-settings",
+		"/Users/grady/Downloads/datomic-pro-0.9.5153/samples/seattle/seattle-data0.edn",
+		"/Users/grady/code/civic-data-visualization/civic-data-visualization/ex1.html",
+		"/Users/grady/code/fantasy-survivor/fantasy_survivor/fantasy_app/migrations/0004_pickable_rules_class.py",
+		"/Users/grady/code/fantasy-survivor/fantasy_survivor/fantasy_app/templates/fantasy_app/create_tribe.html",
+		"/Users/grady/code/fantasy-survivor/fantasy_survivor/fantasy_app/urls.py",
+		"/Users/grady/code/fantasy-survivor/fantasy_survivor/fantasy_app/forms.py",
+		"/Users/grady/code/fantasy-survivor/fantasy_survivor/fantasy_app/templates/fantasy_app/tribes.html",
+		"/Users/grady/code/fantasy-survivor/fantasy_survivor/fantasy_app/templates/fantasy_app/base.html",
+		"/Users/grady/code/fantasy-survivor/.gitignore",
+		"/Users/grady/code/fantasy-survivor/fantasy_survivor/fantasy_app/signals.py",
+		"/Users/grady/code/fantasy-survivor/fantasy_survivor/fantasy_app/__init__.py",
+		"/Users/grady/code/fantasy-survivor/fantasy_survivor/fantasy_app/templates/fantasy_app/register.html",
+		"/Users/grady/code/fantasy-survivor/fantasy_survivor/fantasy_app/templates/fantasy_app/content_base.html",
+		"/Users/grady/code/fantasy-survivor/fantasy_survivor/fantasy_app/templates/fantasy_app/login.html",
+		"/Users/grady/Library/Application Support/Sublime Text 3/Packages/User/HTML (Django).sublime-settings",
+		"/Users/grady/code/fantasy-survivor/fantasy_survivor/fantasy_survivor/urls.py",
+		"/Users/grady/code/fantasy-survivor/fantasy_survivor/fantasy_app/views.py",
+		"/Users/grady/code/fantasy-survivor/fantasy_survivor/fantasy_survivor/settings.py",
+		"/Users/grady/code/fantasy-survivor/fantasy_survivor/__init__.py",
+		"/Users/grady/code/fantasy-survivor/fantasy_survivor/fantasy_app/apps.py",
+		"/Users/grady/code/fantasy-survivor/fantasy_survivor/fantasy_survivor/apps.py",
+		"/Users/grady/Library/Application Support/Sublime Text 3/Packages/User/Preferences.sublime-settings"
+	],
+	"find":
+	{
+		"height": 30.0
+	},
+	"find_in_files":
+	{
+		"height": 106.0,
+		"where_history":
+		[
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"handle-command",
+			"eval-mode",
+			"commands",
+			"pixel-output",
+			"print",
+			":model.\\w+/count",
+			"(child-models)",
+			"    ",
+			"children",
+			"evaluated-mode",
+			"child-models",
+			"types",
+			"24",
+			":season",
+			"defn",
+			"23",
+			"episode-by-uuid",
+			"    ",
+			"uuid",
+			"name",
+			"1000002",
+			"1000001",
+			":db.id",
+			"andle",
+			"conrete",
+			"2015",
+			"rules",
+			"RULES",
+			"rules",
+			"type",
+			"TYPE",
+			"type",
+			"pick_class",
+			"type",
+			"TYPE",
+			"type",
+			"pick_type",
+			"PICK_RULES",
+			"pick_rules",
+			"pick_type",
+			"PICK_CLASSES",
+			"src",
+			"players",
+			"tribes",
+			"form",
+			"ForeignKey",
+			"tribe.",
+			"td"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": true,
+		"replace_history":
+		[
+			":model/count",
+			"  ",
+			"first-name",
+			":db/id"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "mode.clj",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5192,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5142,
+								5142
+							]
+						],
+						"settings":
+						{
+							"git_savvy.file_path": "/Users/grady/code/sparkle/src/sparkle/mode.clj",
+							"git_savvy.repo_path": "/Users/grady/code/sparkle",
+							"syntax": "Packages/Clojure/Clojure.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2759.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "/Users/grady/code/sparkle/sparkle.sublime-project",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 69,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"git_savvy.file_path": "/Users/grady/code/sparkle/src/sparkle/sparkle.sublime-project",
+							"git_savvy.repo_path": "/Users/grady/code/sparkle",
+							"syntax": "Packages/JavaScript/JSON.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 2,
+					"file": "/Users/grady/code/sparkle/models.edn",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 3208,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"git_savvy.file_path": "/Users/grady/code/sparkle/models.edn",
+							"git_savvy.repo_path": "/Users/grady/code/sparkle",
+							"syntax": "Packages/EDN/EDN.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 17.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 30.0
+	},
+	"input":
+	{
+		"height": 35.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			0.5,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.GitSavvy":
+	{
+		"height": 98.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.unsaved_changes":
+	{
+		"height": 98.0
+	},
+	"pinned_build_system": "",
+	"project": "sparkle.sublime-project",
+	"replace":
+	{
+		"height": 56.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"views",
+				"fantasy_survivor/fantasy_app/views.py"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": false,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 159.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
