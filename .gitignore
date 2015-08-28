@@ -9,3 +9,5 @@ pom.xml.asc
 /.nrepl-port
 .hgignore
 .hg/
+sparkle.sublime-project
+sparkle.sublime-workspace
