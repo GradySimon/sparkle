@@ -31,43 +31,57 @@
      :model/count 10
      :model.leaf/address {:channel 1 :order-key 3}}]}
 
-
  {:model/name "night-costume"
+  :model/type :model.type/named-composite
   :model/children
    {:night-costume/left-sleeve
      {:model/type :model.type/cylinder
       :model/children
        [{:model/type :model.type/strip
-         :model/count 16}
+         :model/count 16
+         :model.leaf/address {:channel 0 :order-key 0}}
         {:model/type :model.type/strip
-         :model/count 15}
+         :model/count 15
+         :model.leaf/address {:channel 0 :order-key 1}}
         {:model/type :model.type/strip
-         :model/count 14}
+         :model/count 14
+         :model.leaf/address {:channel 0 :order-key 2}}
         {:model/type :model.type/strip
-         :model/count 12}
+         :model/count 12
+         :model.leaf/address {:channel 1 :order-key 0}}
         {:model/type :model.type/strip
-         :model/count 11}
+         :model/count 11
+         :model.leaf/address {:channel 1 :order-key 1}}
         {:model/type :model.type/strip
-         :model/count 10}
+         :model/count 10
+       :model.leaf/address {:channel 1 :order-key 2}}
         {:model/type :model.type/strip
-         :model/count 10}]}
+         :model/count 10
+         :model.leaf/address {:channel 1 :order-key 3}}]}
     :night-costume/right-sleeve
      {:model/type :model.type/cylinder
       :model/children
        [{:model/type :model.type/strip
-         :model/count 16}
+         :model/count 16
+         :model.leaf/address {:channel 0 :order-key 0}}
         {:model/type :model.type/strip
-         :model/count 15}
+         :model/count 15
+         :model.leaf/address {:channel 0 :order-key 1}}
         {:model/type :model.type/strip
-         :model/count 14}
+         :model/count 14
+         :model.leaf/address {:channel 0 :order-key 2}}
         {:model/type :model.type/strip
-         :model/count 12}
+         :model/count 12
+         :model.leaf/address {:channel 1 :order-key 0}}
         {:model/type :model.type/strip
-         :model/count 11}
+         :model/count 11
+         :model.leaf/address {:channel 1 :order-key 1}}
         {:model/type :model.type/strip
-         :model/count 10}
+         :model/count 10
+       :model.leaf/address {:channel 1 :order-key 2}}
         {:model/type :model.type/strip
-         :model/count 10}]}}}
+         :model/count 10
+         :model.leaf/address {:channel 1 :order-key 3}}]}}}
 
  {:model/name "test-cylinder"
   :model/type :model.type/cylinder

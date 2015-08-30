@@ -23,6 +23,13 @@
   (fn [env model params state]
     (:model/type model)))
 
+(defmethod slave :model.type/named-composite
+  [_ model {:keys [mode-map]} _]
+  {:child-mode-frames 
+    (into {}
+      (for [submodel (keys mode-map)]
+        {submodel (mode-map submodel)}))})
+
 (defmethod slave :model.type/strip
   [env model {:keys [pixels]} state]
   (let [pixel-count (:model/count model)]
@@ -117,7 +124,9 @@
           (vec (for [row (range rows)]
                   (vec (map #(update-conway-pixel old-grid row %) (range columns)))))]
     (if (= new-grid old-grid)
-      (new-conway-grid rows columns)
+      (do
+        (println "No grid change. New grid.")
+        (new-conway-grid rows columns))
       new-grid)))
 
 (defn conways [{:keys [time]} model {:keys [period on-color off-color]} {:keys [step-start-time grid]}]
@@ -139,8 +148,8 @@
         child-mode-frames (for [row current-grid]
                             {:mode slave
                              :params {:pixels (map #(if % on-color off-color) row)}})]
-      ; (when should-update
-      ;   (print-grid current-grid))
+      (when should-update
+        (print-grid current-grid))
       {:child-mode-frames child-mode-frames
        :state
         {:step-start-time current-step-start-time

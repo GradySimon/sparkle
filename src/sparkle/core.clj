@@ -12,7 +12,7 @@
 
 (def model-file-path "models.edn")
 
-(def selected-model "right-sleeve")
+(def selected-model "night-costume")
 
 ; note: currently there are two concepts of state: this
 ; record, and mode state, which is part of a mode frame
@@ -84,10 +84,19 @@
       {:env env
        :model model
        :mode-frame 
-         {:mode mode/conways
-          :params {:period 1000
-                   :on-color {:r 0.3 :g 0 :b 0.3}
-                   :off-color {:r 0 :g 0 :b 0.3}}}})))
+         {:mode mode/slave
+          :params
+            {:mode-map
+               {:night-costume/left-sleeve
+                  {:mode mode/conways
+                   :params {:period 1000
+                            :on-color {:r 0.3 :g 0 :b 0.3}
+                            :off-color {:r 0 :g 0 :b 0.3}}}
+                 :night-costume/right-sleeve
+                   {:mode mode/conways
+                    :params {:period 1000
+                             :on-color {:r 0.3 :g 0 :b 0.3}
+                             :off-color {:r 0 :g 0 :b 0.3}}}}}}})))
 
 ; This is where any automatic updates to env should happen.
 (defn next-state 
