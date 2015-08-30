@@ -1,6 +1,7 @@
 (ns sparkle.mode
   (:require [clojure.algo.generic.functor :refer [fmap]]
-            [clojure.zip :as zip]))
+            [clojure.zip :as zip]
+            [fipp.edn :as fipp]))
 
 ; modes return either a seq or a map of these:
 ; {:mode mode-name
@@ -10,32 +11,27 @@
 ; eval-mode will also supply an env-map to each mode call, 
 ; which it gets from core/update
 
+(defmulti dimensions
+  (fn [model]
+    (:model/type model)))
+
+(defmethod dimensions :model.type/cylinder [model]
+  [(count (:model/children model))
+   (apply max (map :model/count (:model/children model)))])
+
+(defmulti slave
+  (fn [env model params state]
+    (:model/type model)))
+
+(defmethod slave :model.type/strip
+  [env model {:keys [pixels]} state]
+  (let [pixel-count (:model/count model)]
+    {:pixels (take pixel-count pixels)}))
+
 (defmulti plasma
   "See http://www.bidouille.org/prog/plasma"
   (fn [env model params]
     (:model/type model)))
-
-; (defmethod plasma :model.type/strip
-;   [{:keys [time]} model {:keys [period]}]
-;   (let [count (:model/count model)]
-;     (for [x (range count)]
-;       {:r (* 0.609 (Math/sin (+ (* x 2) (/ time 1000))))
-;        :g (* 0.164 (Math/sin (+ (* x 2) (/ time 1000))))
-;        :b (* 0 (Math/sin (+ (* x 2) (/ time 1000))))})))
-
-; (defmethod math-christmas :model.type/strip
-;   [{:keys [time]} model {:keys [period]}]
-;   (let [count (:model/count model)
-;         scaled-time (/ time 10000)
-;         v (fn [x]
-;              (+ (Math/sin (+ (* 2 x) scaled-time))
-;                 (Math/sin (+ (* 10 (+ (* x (Math/sin (/ scaled-time 2)))
-;                                       (* 2 (Math/cos (/ scaled-time 3)))))
-;                              scaled-time))))]
-;     (for [x (range count)]
-;       {:r (* 0.60 (Math/sin (* (v (* x 0.1)) Math/PI)))
-;        :g (* 0.34 (Math/cos (* (v (* x 0.1)) Math/PI)))
-;        :b 0})))
 
 (def math-christmas
   {:time-scale-factor 10000
@@ -71,11 +67,89 @@
     {:mode plasma 
      :params (assoc-in params [:y-val] strip-num)}))
 
-(defn periodic-step [{:key [time]} model {:keys [period step-fn step-fn-params]} {:keys [last-step-time last-mode-frame step-fn-state]}]
-  (let [time-since-last (- time last-step-time)]
-    (if (< period time-since-last)
-      (step-fn env model step-fn-params step-fn-state)
-      last-mode-frame)))
+(defn get-point [grid x-coord y-coord]
+  (nth (nth grid x-coord) y-coord))
+
+(defn grid-dimensions [grid]
+  [(count grid)
+   (count (first grid))])
+
+(defn print-grid [grid]
+  (println "----------------------------------")
+  (doseq [row grid]
+    (println (map #(if % "#" " ") row))))
+
+(defn relative [grid x-coord y-coord [x-offset y-offset]]
+  (let [[rows columns] (grid-dimensions grid)
+        target-x (mod (+ x-coord y-offset) rows)
+        target-y (mod (+ y-coord y-offset) columns)]
+      (get-point grid target-x target-y)))
+
+(defn neighbor-count [grid x-coord y-coord]
+  (let [neighbors
+          (map #(relative grid x-coord y-coord %)
+            (filter #(not= [0 0] %)
+              (for [x-offset [-1 0 1]
+                    y-offset [-1 0 1]]
+                [x-offset y-offset])))]
+  (count (filter identity neighbors))))
+
+(defn update-conway-pixel [old-grid x-coord y-coord]
+  (let [neighbor-count (neighbor-count old-grid x-coord y-coord)
+        alive (get-point old-grid x-coord y-coord)]
+    (if alive
+      (cond
+        (<= neighbor-count 1) false
+        (<= neighbor-count 3) true
+        (> neighbor-count 3) false)
+      (if (= neighbor-count 3)
+        true
+        false))))
+
+(defn new-conway-grid [rows columns]
+  (vec (for [row (range rows)]
+          (vec (for [column (range columns)]
+                  (> 0.05 (rand)))))))
+
+(defn update-conway-grid [old-grid]
+  (let [[rows columns] (grid-dimensions old-grid)
+        new-grid 
+          (vec (for [row (range rows)]
+                  (vec (map #(update-conway-pixel old-grid row %) (range columns)))))]
+    (if (= new-grid old-grid)
+      (new-conway-grid rows columns)
+      new-grid)))
+
+(defn conways [{:keys [time]} model {:keys [period on-color off-color]} {:keys [step-start-time grid]}]
+  (let [non-null-start-time (if-not step-start-time
+                              time
+                              step-start-time)
+        time-since-last (- time non-null-start-time)
+        should-update (< period time-since-last)
+        current-step-start-time (if should-update
+                                  (+ non-null-start-time period)
+                                  non-null-start-time)
+        current-grid (if-not grid
+                        (let [[row-count column-count] (dimensions model)]
+                          (println "State grid is null. Making new grid")
+                          (new-conway-grid row-count column-count))
+                        (if should-update
+                                (update-conway-grid grid)
+                                grid))
+        child-mode-frames (for [row current-grid]
+                            {:mode slave
+                             :params {:pixels (map #(if % on-color off-color) row)}})]
+      ; (when should-update
+      ;   (print-grid current-grid))
+      {:child-mode-frames child-mode-frames
+       :state
+        {:step-start-time current-step-start-time
+         :grid current-grid}}))
+
+; Note: a conway grid is a rectangular vector of vectors.
+;       each element in the top-level vector is a row, and corresponds to x
+;       the inner vectors hold column values for their row and correspond to y
+
 
 (defn px-blink [time period on-color off-color]
   (if (= 0 (mod (quot time period) 2))
@@ -118,7 +192,7 @@
         (sequential? (:children mode-tree-node)) (seq (:children mode-tree-node)))))
 
 (defn make-mode-tree-node [node children]
-  (assoc node :children children))
+  (assoc node :children children))-0
 
 (defn mode-tree-zip [mode-tree]
   "Returns a zipper for playing with mode-tree."

@@ -14,6 +14,9 @@
 
 (def selected-model "right-sleeve")
 
+; note: currently there are two concepts of state: this
+; record, and mode state, which is part of a mode frame
+
 (defrecord State [env model mode-frame])
 
 (defn select-model [name model]
@@ -37,20 +40,30 @@
 (defn eval-state 
   [{env :env 
     model :model 
-    {:keys [mode params mode-state] :as mode-frame} :mode-frame}
-    {prev-state :prev-state}]
+    {:keys [mode params] :as mode-frame} :mode-frame}
+    {last-state :state last-children :children}]
   (if (not (contains? model :model/children))
-    {:model-node model
-     :mode-frame mode-frame
-     :pixels (mode env model params)}
+    (let [{pixels :pixels updated-state :state} (mode env model params last-state)]
+      {:model-node model
+       :mode-frame mode-frame
+       :state updated-state
+       :pixels pixels})
     
-    (let [child-mode-frames (mode env model params )
-          child-models (:model/children model)]
+    (let [{child-mode-frames :child-mode-frames updated-state :state} 
+            (mode env model params last-state)
+          child-models 
+            (:model/children model)]
       {:model-node (dissoc model :model/children)
        :mode-frame mode-frame
+       :state updated-state
        :children (cond
                    (sequential? child-models)
-                     (map #(eval-state (->State env %1 %2)) child-models child-mode-frames)
+                     (map #(eval-state (->State env %1 %2) %3) 
+                      child-models 
+                      child-mode-frames
+                      (if last-children
+                        last-children
+                        (repeat (count child-models) nil)))
                    (map? child-models)
                      (into {}
                        (map (fn [child-name]
@@ -58,7 +71,10 @@
                                             (->State
                                               env
                                               (child-name child-models)
-                                              (child-name child-mode-frames)))})
+                                              (child-name child-mode-frames))
+                                            (child-name (if last-children
+                                                          last-children
+                                                          (repeat (count child-models) nil))))})
                             (keys child-models))))})))
 
 (defn setup []
@@ -68,8 +84,10 @@
       {:env env
        :model model
        :mode-frame 
-         {:mode mode/plasma
-          :params mode/math-christmas}})))
+         {:mode mode/conways
+          :params {:period 1000
+                   :on-color {:r 0.3 :g 0 :b 0.3}
+                   :off-color {:r 0 :g 0 :b 0.3}}}})))
 
 ; This is where any automatic updates to env should happen.
 (defn next-state 
@@ -105,26 +123,29 @@
   (assoc-in state path value))
 
 (defn render-loop [command-chan render-chan]
-  (go-loop [last-state (setup)
-            status :running]
+  (go-loop [status :running
+            last-state (setup)
+            last-eval-tree {}]
     (let [state (next-state last-state)
-          command 
+          command
             (if (= status :running)
                   (alt!
                     command-chan ([command] command)
                     :default {:type :render})
                   (<! command-chan))]
       (case (:type command)
-        :stop (recur state :stopped)
-        :start (recur state :running)
-        :edit (recur (edit-state command state) status)
+        :stop (recur :stopped state last-eval-tree)
+        :start (recur :running state last-eval-tree)
+        :edit (recur status (edit-state command state) last-eval-tree)
         :report (do
                   (fipp/pprint state)
-                  (recur state status))
-        :render (do
-                  (>! render-chan state)
-                  (recur state status))
-        (recur state status)))))
+                  (recur status state last-eval-tree))
+        :render (let [eval-tree (eval-state state last-eval-tree)
+                      pixels (mode/pixel-map eval-tree)]
+                  ;(println "---------------------")
+                  (>! render-chan pixels)
+                  (recur status state eval-tree))
+        (recur state status last-eval-tree)))))
 
 (def render-pipeline
   (comp
@@ -135,7 +156,7 @@
 
 (defonce command-chan (chan (buffer 10)))
 
-(defonce render-chan (chan (buffer 1) render-pipeline))
+(defonce render-chan (chan 1))
 
 (defn init []
   (fc/start-pushing-pixels render-chan)
