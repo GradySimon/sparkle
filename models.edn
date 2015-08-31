@@ -31,6 +31,28 @@
      :model/count 10
      :model.leaf/address {:channel 1 :order-key 3}}]}
 
+ {:model/name "yurt"
+  :model/type :model.type/named-composite
+  :model/children
+    [{:model/type :model.type/strip
+      :model/count 36
+      :model.leaf/address {:channel 0 :order-key 0}}
+     {:model/type :model.type/strip
+      :model/count 36
+      :model.leaf/address {:channel 0 :order-key 1}}
+     {:model/type :model.type/strip
+      :model/count 36
+      :model.leaf/address {:channel 0 :order-key 2}}
+     {:model/type :model.type/strip
+      :model/count 36
+      :model.leaf/address {:channel 0 :order-key 3}}
+     {:model/type :model.type/strip
+      :model/count 36
+      :model.leaf/address {:channel 0 :order-key 4}}
+     {:model/type :model.type/strip
+      :model/count 36
+      :model.leaf/address {:channel 0 :order-key 5}}]}
+
  {:model/name "night-costume"
   :model/type :model.type/named-composite
   :model/children

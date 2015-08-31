@@ -35,9 +35,12 @@
   (let [pixel-count (:model/count model)]
     {:pixels (take pixel-count pixels)}))
 
+; (defmulti pulse-wave
+;   (fn [env model params _]))
+
 (defmulti plasma
   "See http://www.bidouille.org/prog/plasma"
-  (fn [env model params]
+  (fn [env model params _]
     (:model/type model)))
 
 (def math-christmas
@@ -51,7 +54,7 @@
      {:r 0.33 :g 0.33 :b 0.33}})
 
 (defmethod plasma :model.type/strip
-  [{:keys [time]} model {:keys [time-scale-factor rgb-multipliers y-val]}]
+  [{:keys [time]} model {:keys [time-scale-factor rgb-multipliers y-val]} _]
   (let [count (:model/count model)
         scaled-time (/ time time-scale-factor)
         v (fn [x y]
@@ -62,17 +65,19 @@
                 (let [cx (+ x (* 0.5 (Math/sin (/ scaled-time 5))))
                       cy (+ y (* 0.5 (Math/cos (/ scaled-time 3))))]
                       (Math/sin (+ 1 scaled-time (* 100 (+ (* cx cx) (* cy cy))))))))]
-    (for [x (range count)
-          :let [v-val (v (* x 0.025) (* y-val 0.025 ))]]
+    {:pixels
+      (for [x (range count)
+            :let [v-val (v (* x 0.025) (* y-val 0.025 ))]]
         {:r (* (:r rgb-multipliers) (Math/sin (* v-val Math/PI)))
          :g (* (:g rgb-multipliers) (Math/sin (+ (* v-val Math/PI) (* (/ 2 3) Math/PI))))
-         :b (* (:b rgb-multipliers) (Math/sin (+ (* v-val Math/PI) (* (/ 4 3) Math/PI))))})))
+         :b (* (:b rgb-multipliers) (Math/sin (+ (* v-val Math/PI) (* (/ 4 3) Math/PI))))})}))
 
 (defmethod plasma :model.type/cylinder
-  [env model params]
-  (for [strip-num (range (count (:model/children model)))]
-    {:mode plasma 
-     :params (assoc-in params [:y-val] strip-num)}))
+  [env model params _]
+  {:child-mode-frames
+    (for [strip-num (range (count (:model/children model)))]
+      {:mode plasma
+       :params (assoc-in params [:y-val] strip-num)})})
 
 (defn get-point [grid x-coord y-coord]
   (nth (nth grid x-coord) y-coord))
@@ -124,9 +129,7 @@
           (vec (for [row (range rows)]
                   (vec (map #(update-conway-pixel old-grid row %) (range columns)))))]
     (if (= new-grid old-grid)
-      (do
-        (println "No grid change. New grid.")
-        (new-conway-grid rows columns))
+      (new-conway-grid rows columns)
       new-grid)))
 
 (defn conways [{:keys [time]} model {:keys [period on-color off-color]} {:keys [step-start-time grid]}]
@@ -148,8 +151,8 @@
         child-mode-frames (for [row current-grid]
                             {:mode slave
                              :params {:pixels (map #(if % on-color off-color) row)}})]
-      (when should-update
-        (print-grid current-grid))
+      ; (when should-update
+      ;   (print-grid current-grid))
       {:child-mode-frames child-mode-frames
        :state
         {:step-start-time current-step-start-time

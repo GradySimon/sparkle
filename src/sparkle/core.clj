@@ -42,6 +42,7 @@
     model :model 
     {:keys [mode params] :as mode-frame} :mode-frame}
     {last-state :state last-children :children}]
+  ;(fipp/pprint model)
   (if (not (contains? model :model/children))
     (let [{pixels :pixels updated-state :state} (mode env model params last-state)]
       {:model-node model
@@ -77,26 +78,39 @@
                                                           (repeat (count child-models) nil))))})
                             (keys child-models))))})))
 
+(def conways
+  {:mode mode/slave
+   :params
+     {:mode-map
+        {:night-costume/left-sleeve
+           {:mode mode/conways
+            :params {:period 1000
+                     :on-color {:r 0.3 :g 0 :b 0.3}
+                     :off-color {:r 0 :g 0 :b 0.3}}}
+          :night-costume/right-sleeve
+            {:mode mode/conways
+             :params {:period 1000
+                      :on-color {:r 0.3 :g 0 :b 0.3}
+                     :off-color {:r 0 :g 0 :b 0.3}}}}}})
+
+(def full-spectrum-arm
+  {:mode mode/slave
+   :params
+     {:mode-map
+        {:night-costume/left-sleeve
+           {:mode mode/plasma
+            :params mode/full-spectrum}
+         :night-costume/right-sleeve
+           {:mode mode/plasma
+            :params mode/math-christmas}}}})
+
 (defn setup []
   (let [model (select-model selected-model (edn/read-string (slurp model-file-path)))
         env {:time (System/currentTimeMillis)}]
     (map->State 
       {:env env
        :model model
-       :mode-frame 
-         {:mode mode/slave
-          :params
-            {:mode-map
-               {:night-costume/left-sleeve
-                  {:mode mode/conways
-                   :params {:period 1000
-                            :on-color {:r 0.3 :g 0 :b 0.3}
-                            :off-color {:r 0 :g 0 :b 0.3}}}
-                 :night-costume/right-sleeve
-                   {:mode mode/conways
-                    :params {:period 1000
-                             :on-color {:r 0.3 :g 0 :b 0.3}
-                             :off-color {:r 0 :g 0 :b 0.3}}}}}}})))
+       :mode-frame full-spectrum-arm})))
 
 ; This is where any automatic updates to env should happen.
 (defn next-state 
@@ -151,7 +165,7 @@
                   (recur status state last-eval-tree))
         :render (let [eval-tree (eval-state state last-eval-tree)
                       pixels (mode/pixel-map eval-tree)]
-                  ;(println "---------------------")
+                  ; (println pixels)
                   (>! render-chan pixels)
                   (recur status state eval-tree))
         (recur state status last-eval-tree)))))
@@ -174,6 +188,9 @@
 
 (defn edit [path value]
   (>!! command-chan {:type :edit :path path :value value}))
+
+(defn set-mode [new-mode]
+  (edit [:mode-frame] new-mode))
 
 (defn start []
   (>!! command-chan {:type :start}))
