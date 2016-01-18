@@ -1,144 +1,78 @@
 (ns sparkle.core
-  (:require [clojure.edn :as edn]
-            [clojure.core.async :as a
-             :refer [>! <! >!! <!! go go-loop chan buffer close! thread
-                     alt! alts! alts!! timeout]]
-            [clojure.tools.logging :as log]
-            [fipp.edn :as fipp]
-            [sparkle.mode :as mode]
-            [sparkle.color :as color]
-            [sparkle.fadecandy-opc :as fc])
+  (:require [clojure.algo.generic.functor :refer [fmap]]
+            [com.stuartsierra.component :as component])
   (:gen-class))
 
-(def model-file-path "models.edn")
+; Let's start by implementing rendering a vec of layers on one static set of LEDs
 
-(def selected-model "right-sleeve")
+(def black {:r 0 :g 0 :b 0})
+(def white {:r 1 :g 1 :b 1})
 
-(defrecord State [env model mode-frame])
+(def leds (take 5 (repeat black)))
 
-(defn select-model [name model]
-  (first (filter #(= name (% :model/name)) model)))
+(defn static-color [color]
+  (fn [leds]
+    (map (constantly color) leds)))
 
-; eval-state returns a tree-structured map, that looks like this:
-; {:model-node {...}
-;  :mode-frame {:mode mode :params params}
-;  :children [{:child-name {child}} | [{child}]]}
+(defn scale-brightness [factor]
+  (fn [leds]
+    (map (fn [led]
+           (fmap #(* factor %) led))
+         leds)))
 
-(defn eval-state 
-  [{env :env model :model {:keys [mode params] :as mode-frame} :mode-frame}]
-  (if (not (contains? model :model/children))
-    {:model-node model
-     :mode-frame mode-frame
-     :pixels (mode env model params)}
-    
-    (let [child-mode-frames (mode env model params)
-          child-models (:model/children model)]
-      {:model-node (dissoc model :model/children)
-       :mode-frame mode-frame
-       :children (cond
-                   (sequential? child-models)
-                     (map #(eval-state (->State env %1 %2)) child-models child-mode-frames)
-                   (map? child-models)
-                     (into {}
-                       (map (fn [child-name]
-                              {child-name (eval-state
-                                            (->State
-                                              env
-                                              (child-name child-models)
-                                              (child-name child-mode-frames)))})
-                            (keys child-models))))})))
+(defn brightness-gradient [start-factor end-factor]
+  (fn [leds]
+    (let [step (/ (- end-factor start-factor)
+                  (- (count leds) 1))
+          factors (iterate #(+ % step) start-factor)]
+      (println (take 5 factors))
+      (map (fn [led factor]
+             (fmap #(* factor %) led))
+           leds factors))))
 
-(defn setup []
-  (let [model (select-model selected-model (edn/read-string (slurp model-file-path)))
-        env {:time (System/currentTimeMillis)}]
-    (map->State 
-      {:env env
-       :model model
-       :mode-frame 
-         {:mode mode/plasma
-          :params mode/math-christmas}})))
+(defn apply-layers [layers leds]
+  ((apply comp layers) leds))
 
-; This is where any automatic updates to env should happen.
-(defn next-state 
-  [{:keys [env model mode-frame]}]
-  (let [env (assoc-in env [:time] (System/currentTimeMillis))]
-    (map->State 
-      {:env env
-       :model model
-       :mode-frame mode-frame})))
+(apply-layers [(brightness-gradient 0.8 0)
+               (scale-brightness 1)
+               (static-color white)]
+              leds)
 
-(defn report-framerate [framerate]
+(defmulti execute (fn [command layers status] (:type command)))
+
+(defmethod execute :start [_ layers status]
+  [layers :running])
+
+(defmethod execute :pause [_ layers status]
+  [layers :paused])
+
+(defmethod execute :update [{:keys [new-layers]} layers status]
+  [new-layers status])
+
+(defmethod execute :stop [_ _ _]
   nil)
 
-(defn log-framerate [period]
-  (fn [step]
-    (let [cycle-start-time (atom (System/currentTimeMillis))
-          frame-count (atom 0)]
-      (fn
-        ([] (step))
-        ([accum] (step accum))
-        ([accum frame] 
-          (let [current-time (System/currentTimeMillis)
-                elapsed-cycle-time (- current-time @cycle-start-time)]
-            (if (> elapsed-cycle-time period)
-              (let [framerate (quot 1000 (/ elapsed-cycle-time @frame-count))]
-                (report-framerate framerate)
-                (reset! cycle-start-time (System/currentTimeMillis))
-                (reset! frame-count 0))
-              (swap! frame-count inc))
-            (step accum frame)))))))
-
-(defn edit-state [{:keys [path value]} state]
-  (assoc-in state path value))
-
-(defn render-loop [command-chan render-chan]
-  (go-loop [last-state (setup)
+(defn start-rendering [command-chan frame-chan]
+  (go-loop [layers []
             status :running]
-    (let [state (next-state last-state)
-          command 
-            (if (= status :running)
-                  (alt!
-                    command-chan ([command] command)
-                    :default {:type :render})
-                  (<! command-chan))]
-      (case (:type command)
-        :stop (recur state :stopped)
-        :start (recur state :running)
-        :edit (recur (edit-state command state) status)
-        :report (do
-                  (fipp/pprint state)
-                  (recur state status))
-        :render (do
-                  (>! render-chan state)
-                  (recur state status))
-        (recur state status)))))
+    (let [[layers status :as loop-result]
+          (if (= status :running)
+            (alt! command-chan ([command] (execute command layers status)) 
+                  :default (do
+                             (render layers leds)
+                             [layers :running]))
+            (execute (<! command-chan) layers status))]
+      (when loop-result
+        (recur loop-result)))))
 
-(def render-pipeline
-  (comp
-    (map eval-state)
-    (map mode/pixel-map)
-    ;(log-framerate 1000)
-    ))
+; make the if :running render logic the default of alt?
 
-(defonce command-chan (chan (buffer 10)))
+(defrecord Renderer [command-chan frame-chan]
+  component/Lifecycle
 
-(defonce render-chan (chan (buffer 1) render-pipeline))
+  (start [renderer]
+    (start-rendering command-chan frame-chan)
+    (renderer))
 
-(defn init []
-  (fc/start-pushing-pixels render-chan)
-  (render-loop command-chan render-chan)
-  :success)
-
-(defn edit [path value]
-  (>!! command-chan {:type :edit :path path :value value}))
-
-(defn start []
-  (>!! command-chan {:type :start}))
-
-(defn stop []
-  (>!! command-chan {:type :stop}))
-
-(defn report []
-  (>!! command-chan {:type :report}))
-
-(println "Alive and kicking!")
+  (stop [renderer]
+    (>! command-chan {:type :stop})))
