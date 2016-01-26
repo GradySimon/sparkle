@@ -12,17 +12,17 @@
 (def leds (take 5 (repeat black)))
 
 (defn static-color [color]
-  (fn [leds]
+  (fn [env leds]
     (map (constantly color) leds)))
 
 (defn scale-brightness [factor]
-  (fn [leds]
+  (fn [env leds]
     (map (fn [led]
            (fmap #(* factor %) led))
          leds)))
 
 (defn brightness-gradient [start-factor end-factor]
-  (fn [leds]
+  (fn [env leds]
     (let [step (/ (- end-factor start-factor)
                   (- (count leds) 1))
           factors (iterate #(+ % step) start-factor)]
@@ -30,8 +30,19 @@
              (fmap #(* factor %) led))
            leds factors))))
 
-(defn apply-layers [layers leds]
-  ((apply comp layers) leds))
+(defn pulse-brightness [{:keys [time] :as env} leds]
+  (let [scaled-time (/ time 10000)
+        brightness-factor (Math/sin scaled-time)]
+    (map (fn [led]
+           (fmap #(* % brightness-factor) led))
+         leds)))
+
+(defn apply-layers [layers env leds]
+  (let [env-applied-layers (for [layer layers] (partial layer env))]
+    ((apply comp env-applied-layers) leds)))
+
+
+(defrecord RenderState [env model])
 
 
 (defn display [{:keys [frame-chan] :as displayer} frame]
@@ -60,39 +71,49 @@
     (close! frame-chan)
     displayer))
 
-(defn render [layers displayer]
-  (display displayer (apply-layers layers leds)))
+
+(defn get-env-updates [env]
+  (-> env
+      (assoc :time (System/currentTimeMillis))))
+
+
+(defn render-step [{:keys [env model] :as state}]
+  (let [{:keys [layers]} model
+        updated-env (get-env-updates env)]
+    (->> leds
+         (apply-layers layers updated-env))))
+
 
 (defn send-command [{:keys [command-chan] :as renderer} command]
   (>!! command-chan command))
 
 (defmulti execute (fn [command layers status] (:type command)))
 
-(defmethod execute :start [_ layers status]
-  [layers :running])
+(defmethod execute :start [_ state status]
+  [state :running])
 
-(defmethod execute :pause [_ layers status]
-  [layers :paused])
+(defmethod execute :pause [_ state status]
+  [state :paused])
 
-(defmethod execute :update [{:keys [new-layers]} layers status]
-  [new-layers status])
+(defmethod execute :update [{:keys [new-state]} state status]
+  [new-state status])
 
 (defmethod execute :stop [_ _ _]
   nil)
 
 (defn start-rendering [{:keys [command-chan displayer] :as renderer}]
   (thread
-    (loop [layers []
+    (loop [state (-> RenderState {} {})
            status :running]
-      (let [[layers status :as loop-result]
+      (let [[state status :as loop-result]
             (if (= status :running)
-              (alt!! command-chan ([command] (execute command layers status)) 
-                    :default (do
-                               (render layers displayer)
-                               [layers :running]))
-              (execute (<!! command-chan) layers status))]
+              (alt!! command-chan ([command] (execute command state status)) 
+                     :default (let [next-frame (render-step state)]
+                                (display displayer next-frame)
+                                [state :running]))
+              (execute (<!! command-chan) state status))]
         (if loop-result
-          (recur layers status)
+          (recur state status)
           (println "Shutting down render loop"))))))
 
 (defrecord Renderer [command-chan displayer]
