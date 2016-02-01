@@ -45,37 +45,46 @@
 (defrecord RenderState [env model])
 
 
-(defn display [{:keys [frame-chan] :as displayer} frame]
+(defprotocol Displayer
+  "A protocol for things that are capable of displaying frames"
+  (display [displayer frame] "Display a frame"))
+
+(defn to-displayer [{:keys [frame-chan] :as displayer} frame]
   (>!! frame-chan frame))
 
-(defn start-displaying [{:keys [frame-chan] :as displayer}]
+(defn start-displayer [{:keys [frame-chan] :as displayer}]
   (thread
-    (loop [prev-frame nil]
+    (loop []
       (let [frame (<!! frame-chan)]
         (if frame
-          (do (when (not= frame prev-frame)
-                (println frame))
-              (recur frame))
+          (do (display displayer frame)
+              (recur))
           (println "Shutting down displayer"))))))
 
-(defrecord Displayer [frame-chan]
+
+(defrecord ConsoleDisplayer [frame-chan prev-frame]
   component/Lifecycle
-  
   (start [displayer]
-    (let [frame-chan (chan)
-          displayer (assoc displayer :frame-chan frame-chan)]
-      (start-displaying displayer)
+    (let [displayer (-> displayer
+                        (assoc :frame-chan (chan))
+                        (assoc :prev-frame (atom nil)))]
+      (start-displayer displayer)
       displayer))
 
   (stop [displayer]
     (close! frame-chan)
-    displayer))
+    displayer)
+
+  Displayer
+  (display [{:keys [prev-frame]} frame]
+    (when (not= frame @prev-frame)
+      (reset! prev-frame frame)
+      (println frame))))
 
 
 (defn get-env-updates [env]
   (-> env
       (assoc :time (System/currentTimeMillis))))
-
 
 (defn render-step [{:keys [env model] :as state}]
   (let [{:keys [layers]} model
@@ -109,7 +118,7 @@
             (if (= status :running)
               (alt!! command-chan ([command] (execute command state status)) 
                      :default (let [next-frame (render-step state)]
-                                (display displayer next-frame)
+                                (to-displayer displayer next-frame)
                                 [state :running]))
               (execute (<!! command-chan) state status))]
         (if loop-result
@@ -134,7 +143,7 @@
   (component/system-map
    :renderer (component/using (map->Renderer {})
                               [:displayer])
-   :displayer (map->Displayer {})))
+   :displayer (map->ConsoleDisplayer {})))
 
 ;;; Below: defs useful for interacting with the running renderer
 
@@ -143,4 +152,3 @@
 (def renderer (:renderer started-system))
 
 (def displayer (:displayer started-system))
-
