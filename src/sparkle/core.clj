@@ -4,7 +4,8 @@
             [com.stuartsierra.component :as component])
   (:gen-class))
 
-; Let's start by implementing rendering a vec of layers on one static set of LEDs
+(defn now []
+  (System/currentTimeMillis))
 
 (def black {:r 0 :g 0 :b 0})
 (def white {:r 1 :g 1 :b 1})
@@ -61,13 +62,16 @@
               (recur))
           (println "Shutting down displayer"))))))
 
+;; The minimum time between frames printed by ConsoleDisplayer
+(def console-display-interval 500)
 
-(defrecord ConsoleDisplayer [frame-chan prev-frame]
+(defrecord ConsoleDisplayer [frame-chan previous]
   component/Lifecycle
   (start [displayer]
     (let [displayer (-> displayer
                         (assoc :frame-chan (chan))
-                        (assoc :prev-frame (atom nil)))]
+                        (assoc :previous (atom {:frame nil
+                                                :time (- (now) console-display-interval)})))]
       (start-displayer displayer)
       displayer))
 
@@ -76,15 +80,17 @@
     displayer)
 
   Displayer
-  (display [{:keys [prev-frame]} frame]
-    (when (not= frame @prev-frame)
-      (reset! prev-frame frame)
-      (println frame))))
+  (display [{:keys [previous]} frame]
+    (let [{prev-frame :frame prev-time :time} @previous]
+      (when (and (>= (now) (+ prev-time console-display-interval))
+                 (not= frame prev-frame))
+        (reset! previous {:frame frame :time (now)})
+        (println frame)))))
 
 
 (defn get-env-updates [env]
   (-> env
-      (assoc :time (System/currentTimeMillis))))
+      (assoc :time (now))))
 
 (defn render-step [{:keys [env model] :as state}]
   (let [{:keys [layers]} model
