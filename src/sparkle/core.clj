@@ -1,6 +1,6 @@
 (ns sparkle.core
   (:require [clojure.core.async :refer [thread chan <!! >!! alt!! close!]]
-   [clojure.algo.generic.functor :refer [fmap]]
+            [clojure.algo.generic.functor :refer [fmap]]
             [com.stuartsierra.component :as component])
   (:gen-class))
 
@@ -50,34 +50,19 @@
   "A protocol for things that are capable of displaying frames"
   (display [displayer frame] "Display a frame"))
 
-(defn to-displayer [{:keys [frame-chan] :as displayer} frame]
-  (>!! frame-chan frame))
 
-(defn start-displayer [{:keys [frame-chan] :as displayer}]
-  (thread
-    (loop []
-      (let [frame (<!! frame-chan)]
-        (if frame
-          (do (display displayer frame)
-              (recur))
-          (println "Shutting down displayer"))))))
-
-;; The minimum time between frames printed by ConsoleDisplayer
+;; The minimum time, in millis, between frames printed by ConsoleDisplayer
 (def console-display-interval 500)
 
-(defrecord ConsoleDisplayer [frame-chan previous]
+(defrecord ConsoleDisplayer [previous]
   component/Lifecycle
   (start [displayer]
-    (let [displayer (-> displayer
-                        (assoc :frame-chan (chan))
-                        (assoc :previous (atom {:frame nil
-                                                :time (- (now) console-display-interval)})))]
-      (start-displayer displayer)
-      displayer))
+    (assoc displayer
+           :previous (atom {:frame nil
+                            :time (- (now) console-display-interval)})))
 
   (stop [displayer]
-    (close! frame-chan)
-    displayer)
+    (dissoc displayer :previous))
 
   Displayer
   (display [{:keys [previous]} frame]
@@ -124,7 +109,7 @@
             (if (= status :running)
               (alt!! command-chan ([command] (execute command state status)) 
                      :default (let [next-frame (render-step state)]
-                                (to-displayer displayer next-frame)
+                                (display displayer next-frame)
                                 [state :running]))
               (execute (<!! command-chan) state status))]
         (if loop-result
