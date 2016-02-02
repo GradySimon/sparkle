@@ -11,7 +11,11 @@
 (def black {:r 0 :g 0 :b 0})
 (def white {:r 1 :g 1 :b 1})
 
-(def leds (take 5 (repeat black)))
+(def leds (take 36 (repeat black)))
+
+(defn constrain
+  [start end n]
+  (min end (max start n)))
 
 (defn static-color [color]
   (fn [env leds]
@@ -33,11 +37,29 @@
            leds factors))))
 
 (defn pulse-brightness [{:keys [time] :as env} leds]
-  (let [scaled-time (/ time 10000)
-        brightness-factor (Math/sin scaled-time)]
+  (let [scaled-time (* 2 Math/PI (/ time 1000))
+        brightness-factor (+ 1/2
+                             (/ (Math/sin scaled-time) 2))]
     (map (fn [led]
            (fmap #(* % brightness-factor) led))
          leds)))
+
+(defn swimming-static-color
+  ([color length interval]
+   (swimming-static-color color length interval 0))
+
+  ([color length interval initial-offset]
+   (fn [{:keys [time] :as env} leds]
+     (let [leds (vec leds)
+           size (count leds)
+           last (dec size)
+           offset (+ initial-offset
+                     (int (Math/floor (* (inc size)
+                                         (/ (mod time interval) interval)))))
+           start (constrain 0 last (- offset length))]
+       (into [] (concat (subvec leds 0 start)
+                        (take (- offset start) (repeat color))
+                        (subvec leds (min last offset))))))))
 
 (defn apply-layers [layers env leds]
   (let [env-applied-layers (for [layer layers] (partial layer env))]
@@ -161,3 +183,4 @@
 (def renderer (:renderer started-system))
 
 (def displayer (:displayer started-system))
+
