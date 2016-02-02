@@ -1,7 +1,8 @@
 (ns sparkle.core
   (:require [clojure.core.async :refer [thread chan <!! >!! alt!! close!]]
             [clojure.algo.generic.functor :refer [fmap]]
-            [com.stuartsierra.component :as component])
+            [com.stuartsierra.component :as component]
+            [sparkle.fadecandy-opc :as fc])
   (:gen-class))
 
 (defn now []
@@ -71,6 +72,23 @@
                  (not= frame prev-frame))
         (reset! previous {:frame frame :time (now)})
         (println frame)))))
+
+(defn scale-pixel [pixel]
+  (let [scale-fn (fn [value]
+                   (int (min 256 (max 0 (* 256 value)))))]
+    (fmap scale-fn pixel)))
+
+(defrecord FadecandyDisplayer []
+  component/Lifecycle
+  (start [displayer]
+    displayer)
+
+  (stop [displayer]
+    displayer)
+
+  Displayer
+  (display [displayer frame]
+    (fc/push-pixels {0 (map scale-pixel frame)})))
 
 
 (defn get-env-updates [env]
