@@ -152,7 +152,7 @@
   (component/system-map
    :renderer (component/using (map->Renderer {})
                               [:displayer])
-   :displayer (map->ConsoleDisplayer {})))
+   :displayer (map->FadecandyDisplayer {})))
 
 ;;; Below: defs useful for interacting with the running renderer
 
