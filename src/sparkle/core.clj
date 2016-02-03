@@ -81,13 +81,13 @@
 
 (defmulti execute (fn [command layers status] (:type command)))
 
-(defmethod execute :start [_ state status]
+(defmethod execute :start [_ state _]
   [state :running])
 
-(defmethod execute :pause [_ state status]
+(defmethod execute :pause [_ state _]
   [state :paused])
 
-(defmethod execute :update [{:keys [new-state]} state status]
+(defmethod execute :update [{:keys [new-state]} _ status]
   [new-state status])
 
 (defmethod execute :stop [_ _ _]

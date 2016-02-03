@@ -24,7 +24,7 @@
     (dissoc displayer :previous))
 
   Displayer
-  (display [{:keys [previous]} frame]
+  (display [_ frame]
     (let [{prev-frame :frame prev-time :time} @previous]
       (when (and (>= (now) (+ prev-time console-display-interval))
                  (not= frame prev-frame))
@@ -43,12 +43,12 @@
   (start [displayer]
     (assoc displayer :connection (fc/open-connection host port)))
 
-  (stop [{:keys [connection] :as displayer}]
+  (stop [displayer]
     (fc/close-connection connection)
     (dissoc displayer :connection))
 
   Displayer
-  (display [{:keys [connection]} frame]
+  (display [_ frame]
     (fc/push-pixels {0 (map scale-pixel frame)} connection)))
 
 (defn new-fadecandy-displayer [host port]
