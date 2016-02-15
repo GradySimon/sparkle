@@ -31,11 +31,6 @@
         (reset! previous {:frame frame :time (now)})
         (println frame)))))
 
-(defn scale-pixel [pixel]
-  (let [scale-fn (fn [value]
-                   (int (min 256 (max 0 (* 256 value)))))]
-    (fmap scale-fn pixel)))
-
 ;;; Displaying to Fadecandy
 
 (defrecord FadecandyDisplayer [host port connection]
@@ -49,7 +44,7 @@
 
   Displayer
   (display [_ frame]
-    (fc/push-pixels {0 (map scale-pixel frame)} connection)))
+    (fc/push-pixels {0 frame} connection)))
 
 (defn new-fadecandy-displayer [host port]
   (map->FadecandyDisplayer {:host host :port port}))
