@@ -24,7 +24,6 @@
     (->> leds
          (apply-layers layers updated-env))))
 
-
 (defn send-command [{:keys [command-chan] :as renderer} command]
   (>!! command-chan command))
 
@@ -76,12 +75,4 @@
    :renderer (component/using (map->Renderer {})
                               [:displayer])
    :displayer (d/new-fadecandy-displayer "localhost" 7890)))
-
-;;; Below: defs useful for interacting with the running renderer
-
-(def started-system (component/start (sparkle-system)))
-
-(def renderer (:renderer started-system))
-
-(def displayer (:displayer started-system))
 
