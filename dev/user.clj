@@ -1,4 +1,4 @@
-(ns dev.user
+(ns user
   (:require [com.stuartsierra.component :as component]
             [clojure.tools.namespace.repl :refer [refresh disable-reload!]]
             [sparkle.core :refer :all]
@@ -23,5 +23,5 @@
 
 (defn reset []
   (stop)
-  (refresh :after 'dev.user/go))
+  (refresh :after 'user/go))
 

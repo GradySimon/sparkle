@@ -9,11 +9,9 @@
                  [org.clojure/tools.logging "0.3.1"]
                  [com.stuartsierra/component "0.3.1"]
                  [fipp "0.6.2"]]
-  :main ^:skip-aot sparkle.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}
              :dev {:source-paths ["dev"]
                    :dependencies [[org.clojure/tools.namespace "0.2.3"]
-                                  [org.clojure/java.classpath "0.2.0"]]
-                   :main dev.user}})
+                                  [org.clojure/java.classpath "0.2.0"]]}})
 
