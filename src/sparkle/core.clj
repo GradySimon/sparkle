@@ -18,11 +18,20 @@
   (-> env
       (assoc :time (now))))
 
-(defn render-step [{:keys [env model] :as state}]
-  (let [{:keys [layers]} model
-        updated-env (get-env-updates env)]
-    (->> leds
-         (apply-layers layers updated-env))))
+(defmulti inflate (fn [shape] (:type shape)))
+
+(defmethod inflate :strip [{:keys [pixel-count]}]
+  (vec (take pixel-count (repeat black))))
+
+(defn render-step
+  "Renders the provided RenderState into a frame."
+  [{:keys [env model] :as state}]
+  (let [{:keys [shape layers]} model
+        updated-env (get-env-updates env)
+        [leds next-layers] (apply-layers layers updated-env (inflate shape))]
+    {:frame leds
+     :new-state {:env env
+                 :model (assoc model :layers next-layers)}}))
 
 (defn send-command [{:keys [command-chan] :as renderer} command]
   (>!! command-chan command))
@@ -32,25 +41,25 @@
 (defmethod execute :start [_ state _]
   [state :running])
 
-(defmethod execute :pause [_ state _]
-  [state :paused])
+(defmethod execute :stop [_ state _]
+  [state :stopped])
 
 (defmethod execute :update [{:keys [new-state]} _ status]
   [new-state status])
 
-(defmethod execute :stop [_ _ _]
+(defmethod execute :kill [_ _ _]
   nil)
 
 (defn start-rendering [{:keys [command-chan displayer] :as renderer}]
   (thread
-    (loop [state (-> RenderState {} {})
-           status :running]
+    (loop [state (->RenderState {} nil)
+           status :stopped]
       (let [[state status :as loop-result]
             (if (= status :running)
               (alt!! command-chan ([command] (execute command state status)) 
-                     :default (let [next-frame (render-step state)]
-                                (display displayer next-frame)
-                                [state :running]))
+                     :default (let [{:keys [frame new-state]} (render-step state)]
+                                (display displayer frame)
+                                [new-state :running]))
               (execute (<!! command-chan) state status))]
         (if loop-result
           (recur state status)
@@ -66,7 +75,7 @@
       renderer))
 
   (stop [renderer]
-    (>!! command-chan {:type :stop})
+    (>!! command-chan {:type :kill})
     renderer))
 
 
