@@ -10,8 +10,6 @@
 (def black {:r 0 :g 0 :b 0})
 (def white {:r 1 :g 1 :b 1})
 
-(def leds (take 36 (repeat black)))
-
 (defrecord RenderState [env model])
 
 (defn get-env-updates [env]
@@ -28,8 +26,8 @@
   [{:keys [env model] :as state}]
   (let [{:keys [shape layers]} model
         updated-env (get-env-updates env)
-        [leds next-layers] (apply-layers layers updated-env (inflate shape))]
-    {:frame leds
+        [frame next-layers] (apply-layers layers updated-env (inflate shape))]
+    {:frame frame
      :new-state {:env env
                  :model (assoc model :layers next-layers)}}))
 
@@ -83,5 +81,6 @@
   (component/system-map
    :renderer (component/using (map->Renderer {})
                               [:displayer])
+   ;:displayer (d/map->ConsoleDisplayer {})))
    :displayer (d/new-fadecandy-displayer "localhost" 7890)))
 

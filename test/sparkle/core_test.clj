@@ -4,5 +4,7 @@
 
 (deftest render-blank-state
   (testing "Rendering with an empty layer vector"
-    (is (= (render-step (map->RenderState {:env {} :model {:layers []}}))
-           leds))))
+    (is (= (render-step (map->RenderState {:env {}
+                                           :model {:shape {:type :strip :pixel-count 3}
+                                                   :layers []}}))
+           [black black black]))))
