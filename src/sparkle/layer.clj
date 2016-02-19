@@ -4,47 +4,30 @@
 
 (defn static-color [color]
   (fn [env frame]
-    (map (constantly color) frame)))
+    (mapv (constantly color) frame)))
 
 (defn scale-brightness [factor]
   (fn [env frame]
-    (map (fn [pixel]
+    (mapv (fn [pixel]
            (fmap #(* factor %) pixel))
-         frame)))
+          frame)))
 
 (defn brightness-gradient [start-factor end-factor]
   (fn [env frame]
     (let [step (/ (- end-factor start-factor)
                   (dec (count frame)))
           factors (iterate #(+ % step) start-factor)]
-      (map (fn [pixel factor]
+      (mapv (fn [pixel factor]
              (fmap #(* factor %) pixel))
-           frame factors))))
+            frame factors))))
 
 (defn pulse-brightness [{:keys [time] :as env} frame]
   (let [scaled-time (* 2 Math/PI (/ time 1000))
         brightness-factor (+ 1/2
                              (/ (Math/sin scaled-time) 2))]
-    (map (fn [pixel]
+    (mapv (fn [pixel]
            (fmap #(* % brightness-factor) pixel))
-         frame)))
-
-(defn swimming-static-color
-  ([color length interval]
-   (swimming-static-color color length interval 0))
-
-  ([color length interval initial-offset]
-   (fn [{:keys [time] :as env} frame]
-     (let [frame (vec frame)
-           size (count frame)
-           last (dec size)
-           offset (+ initial-offset
-                     (int (Math/floor (* (inc size)
-                                         (/ (mod time interval) interval)))))
-           start (constrain 0 last (- offset length))]
-       (vec (concat (subvec frame 0 start)
-                    (take (- offset start) (repeat color))
-                    (subvec frame (min last offset))))))))
+          frame)))
 
 (defn stepping-static-color [color interval]
   (fn
@@ -58,6 +41,14 @@
           :state {:offset new-offset :last-time time}})
        {:frame (assoc frame offset color)
         :state  state}))))
+
+(defn check-frame
+  "Verify that a layer didn't make an invalid change to the frame."
+  [old-frame new-frame layer]
+  (when (not= (count old-frame) (count new-frame))
+    (throw (Exception. (str "Error after " layer
+                            ". New frame is a different size (" (count new-frame)
+                            ") than the previous frame (" (count old-frame) ").")))))
 
 ;; Layers are either functions or {:layer-fn :state} maps. Layers
 ;; which wish to use state must have an arity-2 version that can be
@@ -73,12 +64,16 @@
  (if (map? layer)
    (let [{:keys [layer-fn state]} layer
          {new-frame :frame next-state :state} (layer-fn env state frame)]
+     (check-frame frame new-frame layer)
      [new-frame (assoc layer :state next-state)])
    (let [layer-result (layer env frame)]
      (if (map? layer-result)
        (let [{new-frame :frame next-state :state} layer-result]
+         (check-frame frame new-frame layer)
          [new-frame {:layer-fn layer :state next-state}])
-       [layer-result layer]))))
+       (do
+         (check-frame frame layer-result layer)
+         [layer-result layer])))))
 
 (defn apply-layers
   "Applies each layer in layers to the frame with env. Returns the
