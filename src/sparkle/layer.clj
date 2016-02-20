@@ -32,7 +32,7 @@
 (defn wrapping-march
   "Like range, but starts counting up from 0 when it reaches wrap-point"
   ([start n wrap-point]
-   (wrapping-march start n wrap-point 1))  
+   (wrapping-march start n wrap-point 1))
   ([start n wrap-point step]
    (mapv (fn [pos]
           (if (>= pos wrap-point)
@@ -48,11 +48,10 @@
     ([{:keys [time]} {prev-offset :offset last-time :last-time :as state} frame]
      (let [[offset last-time] (if (>= (- time last-time) interval)
                                 [(mod (inc prev-offset) (count frame)) time]
-                                [prev-offset last-time])]          
+                                [prev-offset last-time])]
         {:frame (apply assoc frame (interleave (wrapping-march offset width (count frame))
                                                (repeat color)))
          :state {:offset offset :last-time last-time}}))))
-                  
 
 (defn check-frame
   "Verify that a layer didn't make an invalid change to the frame."
