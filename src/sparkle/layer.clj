@@ -29,18 +29,30 @@
            (fmap #(* % brightness-factor) pixel))
           frame)))
 
-(defn stepping-static-color [color interval]
+(defn wrapping-march
+  "Like range, but starts counting up from 0 when it reaches wrap-point"
+  ([start n wrap-point]
+   (wrapping-march start n wrap-point 1))  
+  ([start n wrap-point step]
+   (mapv (fn [pos]
+          (if (>= pos wrap-point)
+            (mod pos wrap-point)
+            pos))
+    (range start (+ (* step n) start) step))))
+
+(defn stepping-static-color [color interval width initial-offset]
   (fn
-    ([{:keys [time]} frame]
-     {:frame (assoc frame 0 color)
-      :state {:offset 0 :last-time time}})
-    ([{:keys [time]} {:keys [offset last-time] :as state} frame]
-     (if (>= (- time last-time) interval)
-       (let [new-offset (mod (inc offset) (count frame))]
-         {:frame (assoc frame new-offset color)
-          :state {:offset new-offset :last-time time}})
-       {:frame (assoc frame offset color)
-        :state  state}))))
+    ([env frame]
+     ((stepping-static-color color interval width initial-offset)
+      env {:offset initial-offset :last-time 0} frame))
+    ([{:keys [time]} {prev-offset :offset last-time :last-time :as state} frame]
+     (let [[offset last-time] (if (>= (- time last-time) interval)
+                                [(mod (inc prev-offset) (count frame)) time]
+                                [prev-offset last-time])]          
+        {:frame (apply assoc frame (interleave (wrapping-march offset width (count frame))
+                                               (repeat color)))
+         :state {:offset offset :last-time last-time}}))))
+                  
 
 (defn check-frame
   "Verify that a layer didn't make an invalid change to the frame."
