@@ -2,13 +2,13 @@
   (:require [clojure.core.async :refer [thread chan <!! >!! alt!! close!]]
             [clojure.algo.generic.functor :refer [fmap]]
             [com.stuartsierra.component :as component]
+            [com.evocomputing.colors :as c :refer [create-color] :rename {create-color color}]
             [sparkle.util :refer [now constrain]]
             [sparkle.display :as d :refer [display]]
             [sparkle.layer :as l :refer [apply-layers]])
   (:gen-class))
 
-(def black {:r 0 :g 0 :b 0})
-(def white {:r 1 :g 1 :b 1})
+(def black (color [0 0 0]))
 
 (defrecord RenderState [env model])
 

@@ -1,6 +1,7 @@
 (ns user
   (:require [com.stuartsierra.component :as component]
             [clojure.tools.namespace.repl :refer [refresh disable-reload!]]
+            [com.evocomputing.colors :as c :refer [create-color] :rename {create-color color}]
             [sparkle.core :refer :all]
             [sparkle.layer :as l]))
 

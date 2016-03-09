@@ -1,6 +1,7 @@
 (ns sparkle.fadecandy
   (:import (java.net Socket))
   (:require [clojure.algo.generic.functor :refer [fmap]]
+            [com.evocomputing.colors :as c :refer [create-color] :rename {create-color color}]
             [sparkle.util :refer [constrain]]))
 
 (defn open-connection [host port]
@@ -11,18 +12,8 @@
 (defn close-connection [connection]
   (.close connection))
 
-(defn scale [pixel]
-  (fmap #(* % 255) pixel))
-
-(defn clip-rgb [pixel]
-  (fmap (partial constrain 0 255) pixel))
-
 (defn prepare-pixel [pixel]
-  (->> pixel
-       (scale)
-       (clip-rgb)
-       (fmap int)
-       ((juxt :r :g :b))))
+  ((juxt c/red c/green c/blue) pixel))
 
 (defn push-pixels
   "Pushes pixels in pixel-map to the device over connection.

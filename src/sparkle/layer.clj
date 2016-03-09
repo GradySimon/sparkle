@@ -1,5 +1,6 @@
 (ns sparkle.layer
   (:require [clojure.algo.generic.functor :refer [fmap]]
+            [com.evocomputing.colors :as c :refer [create-color] :rename {create-color color}]
             [sparkle.util :refer [constrain]]))
 
 (defn static-color [color]
@@ -52,6 +53,66 @@
         {:frame (apply assoc frame (interleave (wrapping-march offset width (count frame))
                                                (repeat color)))
          :state {:offset offset :last-time last-time}}))))
+
+(defn lowest-factor
+  "Returns the lowest number by which n is evenly divisible."
+  [n]
+  (let [sign (/ n (Math/abs n))
+        check-candidates (fn [candidate]
+                            (if (zero? (rem n candidate))
+                              candidate
+                              (recur (+ sign candidate))))]
+   (if (> n 1)
+     (check-candidates (* sign 2))
+     1)))
+
+(defn triangle-wave
+  "Basic triangle wave function. Follows straight lines between 0 and 1 with a
+  period of 2."
+  [x]
+  (- 1 (* 2 (Math/abs (- (Math/round (* x 0.5)) (* x 0.5))))))
+
+(defn uniform-spaced-hues
+  "Returns n uniformly spaced hues, centered at center degrees, covering
+  breadth degrees of the color wheel."
+  [n center breadth]
+  (let [spacing (quot breadth (inc n))
+        start (- center (/ breadth 2))]
+    (range (+ start spacing) (+ start breadth) spacing)))
+
+(defn -rainbow-recurse
+  "Recursive part of recursive-rainbow. Returns a frame"
+  [center breadth depth frame]
+  (let [pixel-count (count frame)
+        divisions (lowest-factor pixel-count)
+        pixels-per-division (quot pixel-count divisions)]
+    (if (or (= depth 0) (= pixel-count 1))
+      (take pixel-count (repeat center))
+      (mapcat -rainbow-recurse
+        (uniform-spaced-hues divisions center breadth)
+        (take divisions (repeat (/ breadth divisions)))
+        (take divisions (repeat (dec depth)))
+        (partition pixels-per-division frame)))))
+
+(defn recursive-rainbow
+  "Recursively splits the frame into equal-size regions. Each region is painted
+  a color, sampled from even spacings around the color wheel. With a frame of size 6, starts all as one color"
+  [interval center]
+  (fn [{:keys [time]} frame]
+    (let [depth (int (* 4 (triangle-wave (/ time (* 0.5 interval)))))]
+      (mapv #(color {:h % :s 100 :l 12}) (-rainbow-recurse center 360 depth frame)))))
+
+(defn hue-slide
+  "A layer that rotates the hue of each pixel around the color wheel,
+  completing one rotation each period milliseconds"
+  [period]
+  (fn [{:keys [time]} frame]
+    (mapv #(c/adjust-hue % (* 360 (/ (mod time period) period))) frame)))
+
+(defn sort-by-hue
+  "A layer that sorts the pixels by hue"
+  [_ frame]
+  (vec (sort #(- (c/hue %1) (c/hue %2)) frame)))
 
 (defn check-frame
   "Verify that a layer didn't make an invalid change to the frame."
