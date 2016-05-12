@@ -4,16 +4,20 @@
             [sparkle.util :refer [constrain]]))
 
 (defn static-color [color]
+  "Sets the color of every pixel in the frame to `color`"
   (fn [env frame]
     (mapv (constantly color) frame)))
 
 (defn scale-brightness [factor]
+  "Multiplies the brightness of every pixel in the frame by `factor`"
   (fn [env frame]
     (mapv (fn [pixel]
            (fmap #(* factor %) pixel))
           frame)))
 
 (defn brightness-gradient [start-factor end-factor]
+  "Applies a linear gradient to the brightness of the pixels of the frame along the (assumed to be
+  single) spatial dimension of that frame"
   (fn [env frame]
     (let [step (/ (- end-factor start-factor)
                   (dec (count frame)))
@@ -23,6 +27,8 @@
             frame factors))))
 
 (defn pulse-brightness [{:keys [time] :as env} frame]
+  "Modulates the brightness of the frame it's applied to over time according to a sine wave. For now,
+  the sine wave has a fixed period and range"
   (let [scaled-time (* 2 Math/PI (/ time 1000))
         brightness-factor (+ 1/2
                              (/ (Math/sin scaled-time) 2))]
@@ -31,7 +37,8 @@
           frame)))
 
 (defn wrapping-march
-  "Like range, but starts counting up from 0 when it reaches wrap-point"
+  "Returns a vector of `n` numbers starting at `start` and counting up by increments of `step`
+  (which defaults to 1) from there. Wraps back to 0 if the march reaches `wrap-point`"
   ([start n wrap-point]
    (wrapping-march start n wrap-point 1))
   ([start n wrap-point step]
@@ -42,6 +49,8 @@
     (range start (+ (* step n) start) step))))
 
 (defn stepping-static-color [color interval width initial-offset]
+  "Paints a `width`-wide region of the frame `color` and moves that region 1 pixel every `interval`
+  milliseconds, starting at `initial-offset`"
   (fn
     ([env frame]
      ((stepping-static-color color interval width initial-offset)
@@ -55,7 +64,7 @@
          :state {:offset offset :last-time last-time}}))))
 
 (defn lowest-factor
-  "Returns the lowest number by which n is evenly divisible."
+  "Returns the lowest number by which `n` is evenly divisible"
   [n]
   (let [sign (/ n (Math/abs n))
         check-candidates (fn [candidate]
@@ -73,15 +82,15 @@
   (- 1 (* 2 (Math/abs (- (Math/round (* x 0.5)) (* x 0.5))))))
 
 (defn uniform-spaced-hues
-  "Returns n uniformly spaced hues, centered at center degrees, covering
-  breadth degrees of the color wheel."
+  "Returns `n` uniformly spaced hues, centered at `center` degrees, covering
+  `breadth` degrees of the color wheel"
   [n center breadth]
   (let [spacing (quot breadth (inc n))
         start (- center (/ breadth 2))]
     (range (+ start spacing) (+ start breadth) spacing)))
 
 (defn -rainbow-recurse
-  "Recursive part of recursive-rainbow. Returns a frame"
+  "Recursive part of recursive-rainbow"
   [center breadth depth frame]
   (let [pixel-count (count frame)
         divisions (lowest-factor pixel-count)
@@ -96,7 +105,7 @@
 
 (defn recursive-rainbow
   "Recursively splits the frame into equal-size regions. Each region is painted
-  a color, sampled from even spacings around the color wheel. With a frame of size 6, starts all as one color"
+  a color, sampled from even spacings around the color wheel"
   [interval center]
   (fn [{:keys [time]} frame]
     (let [depth (int (* 4 (triangle-wave (/ time (* 0.5 interval)))))]
@@ -104,7 +113,7 @@
 
 (defn hue-slide
   "A layer that rotates the hue of each pixel around the color wheel,
-  completing one rotation each period milliseconds"
+  completing one rotation ebery `period` milliseconds"
   [period]
   (fn [{:keys [time]} frame]
     (mapv #(c/adjust-hue % (* 360 (/ (mod time period) period))) frame)))
@@ -115,7 +124,7 @@
   (vec (sort #(- (c/hue %1) (c/hue %2)) frame)))
 
 (defn check-frame
-  "Verify that a layer didn't make an invalid change to the frame."
+  "Verify that a layer didn't make an invalid change to the frame"
   [old-frame new-frame layer]
   (when (not= (count old-frame) (count new-frame))
     (throw (Exception. (str "Error after " layer
@@ -131,7 +140,7 @@
 (defn iterate-layer
   "Calls the layer with provided env on frame. Returns a vector
   of [frame next-layer] where next-layer is the layer that should be
-  passed to iterate-layer on the next frame."
+  passed to iterate-layer on the next frame"
  [layer env frame]
  (if (map? layer)
    (let [{:keys [layer-fn state]} layer
@@ -149,7 +158,7 @@
 
 (defn apply-layers
   "Applies each layer in layers to the frame with env. Returns the
-  resulting frame and the layer vector that should be used next frame."
+  resulting frame and the layer vector that should be used next frame"
   [layers env frame]
   (reduce (fn [[current-frame prev-layers] layer]
             (let [[next-frame next-layer] (iterate-layer layer env current-frame)]

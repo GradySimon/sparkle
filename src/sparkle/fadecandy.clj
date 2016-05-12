@@ -21,16 +21,15 @@
    them into a set-color packet, and pushes them to the FadeCandy
    device."
   [pixel-map connection]
-   (doseq [[channel-num pixels] pixel-map]
-     (let [command-num 0 ; set color command per OPC
-           pixel-byte-length (* 3 (count pixels))
-           pixel-byte-length-high (quot pixel-byte-length 256)
-           pixel-byte-length-low (mod pixel-byte-length 256)
-           header [channel-num command-num pixel-byte-length-high pixel-byte-length-low]]
-       (->> pixels
-           (mapcat prepare-pixel)
-           (concat header)
-           (byte-array)
-           (.write connection))
-        (.flush connection))))
-
+  (doseq [[channel-num pixels] pixel-map]
+    (let [command-num 0 ; set color command per OPC
+          pixel-byte-length (* 3 (count pixels))
+          pixel-byte-length-high (quot pixel-byte-length 256)
+          pixel-byte-length-low (mod pixel-byte-length 256)
+          header [channel-num command-num pixel-byte-length-high pixel-byte-length-low]]
+      (->> pixels
+          (mapcat prepare-pixel)
+          (concat header)
+          (byte-array)
+          (.write connection))
+      (.flush connection))))

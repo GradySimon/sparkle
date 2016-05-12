@@ -16,7 +16,9 @@
   (-> env
       (assoc :time (now))))
 
-(defmulti inflate (fn [shape] (:type shape)))
+(defmulti inflate
+  "Returns a frame of black (completely off) pixels in the specified `shape`"
+  (fn [shape] (:type shape)))
 
 (defmethod inflate :strip [{:keys [pixel-count]}]
   (vec (take pixel-count (repeat black))))
@@ -31,10 +33,16 @@
      :new-state {:env env
                  :model (assoc model :layers next-layers)}}))
 
-(defn send-command [{:keys [command-chan] :as renderer} command]
+(defn send-command
+  "Shortcut function for sending `command` into the `command-chan` of a `renderer`"
+  [{:keys [command-chan] :as renderer} command]
   (>!! command-chan command))
 
-(defmulti execute (fn [command layers status] (:type command)))
+; TODO rename layers to state
+(defmulti execute
+  "Executes the given `command` given `state` and `status`, returning a vector containing the
+  updated state and status"
+  (fn [command layers status] (:type command)))
 
 (defmethod execute :start [_ state _]
   [state :running])
@@ -49,6 +57,8 @@
   nil)
 
 (defn start-rendering [{:keys [command-chan displayer] :as renderer}]
+  "Starts a rendering loop that will listen for commands on `command-chan` and display frames using
+  `displayer`"
   (thread
     (loop [state (->RenderState {} nil)
            status :stopped]
@@ -83,4 +93,3 @@
                               [:displayer])
    ;:displayer (d/map->ConsoleDisplayer {})))
    :displayer (d/new-fadecandy-displayer "localhost" 7890)))
-
