@@ -56,9 +56,10 @@
 (defmethod execute :kill [_ _ _]
   nil)
 
-(defn start-rendering [{:keys [command-chan displayer] :as renderer}]
+(defn start-rendering
   "Starts a rendering loop that will listen for commands on `command-chan` and display frames using
   `displayer`"
+  [{:keys [command-chan displayer] :as renderer}]
   (thread
     (loop [state (->RenderState {} nil)
            status :stopped]
