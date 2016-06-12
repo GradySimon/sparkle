@@ -11,3 +11,5 @@ pom.xml.asc
 .hg/
 sparkle.sublime-project
 sparkle.sublime-workspace
+/.idea
+*.iml
