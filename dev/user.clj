@@ -1,5 +1,6 @@
 (ns user
-  (:require [com.stuartsierra.component :as component]
+  (:require [clojure.stacktrace :refer [print-cause-trace]]
+            [com.stuartsierra.component :as component]
             [clojure.tools.namespace.repl :refer [refresh disable-reload!]]
             [com.evocomputing.colors :as c :refer [create-color] :rename {create-color color}]
             [sparkle.core :refer :all]
@@ -23,5 +24,6 @@
   (start))
 
 (defn reset []
-  (stop)
-  (refresh :after 'user/go))
+  (try (do (stop)
+           (refresh :after 'user/go))
+    (catch Exception e (print-cause-trace e))))
