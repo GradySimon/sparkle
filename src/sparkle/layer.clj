@@ -1,7 +1,12 @@
 (ns sparkle.layer
-  (:require [clojure.algo.generic.functor :refer [fmap]]
+  (:require [clojure.spec :as s]
+            [clojure.algo.generic.functor :refer [fmap]]
             [com.evocomputing.colors :as c :refer [create-color] :rename {create-color color}]
             [sparkle.util :refer [constrain]]))
+
+(s/fdef static-color 
+  :args (s/cat :color :core/color)
+  :ret :layer/layer-fn)
 
 (defn static-color [color]
   "Sets the color of every pixel in the frame to `color`"

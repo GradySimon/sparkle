@@ -1,9 +1,11 @@
 (ns user
-  (:require [clojure.stacktrace :refer [print-cause-trace]]
+  (:require [clojure.spec :as s]
+            [clojure.stacktrace :refer [print-cause-trace]]
             [com.stuartsierra.component :as component]
             [clojure.tools.namespace.repl :refer [refresh disable-reload!]]
             [com.evocomputing.colors :as c :refer [create-color] :rename {create-color color}]
             [sparkle.core :refer :all]
+            [sparkle.spec :as ss]
             [sparkle.layer :as l]))
 
 (def system nil)

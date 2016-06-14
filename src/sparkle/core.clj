@@ -1,8 +1,10 @@
 (ns sparkle.core
-  (:require [clojure.core.async :refer [thread chan <!! >!! alt!! close!]]
+  (:require [clojure.spec :as s]
+            [clojure.core.async :refer [thread chan <!! >!! alt!! close!]]
             [clojure.algo.generic.functor :refer [fmap]]
             [com.stuartsierra.component :as component]
             [com.evocomputing.colors :as c :refer [create-color] :rename {create-color color}]
+            [sparkle.spec]
             [sparkle.util :refer [now constrain]]
             [sparkle.display :as d :refer [display]]
             [sparkle.layer :as l :refer [apply-layers]])
@@ -16,12 +18,20 @@
   (-> env
       (assoc :time (now))))
 
+(s/fdef inflate
+  :args (s/cat :shape :model/shape)
+  :ret :core/frame)
+
 (defmulti inflate
   "Returns a frame of black (completely off) pixels in the specified `shape`"
   (fn [shape] (:type shape)))
 
 (defmethod inflate :strip [{:keys [pixel-count]}]
   (vec (take pixel-count (repeat black))))
+
+(s/fdef render-step
+  :args (s/cat :state :render/state)
+  :ret (s/keys :req-un [:core/frame :render/state]))
 
 (defn render-step
   "Renders the provided RenderState into a frame."
@@ -30,19 +40,25 @@
         updated-env (get-env-updates env)
         [frame next-layers] (apply-layers layers updated-env (inflate shape))]
     {:frame frame
-     :new-state {:env env
-                 :model (assoc model :layers next-layers)}}))
+     :state {:env env
+             :model (assoc model :layers next-layers)}}))
 
 (defn send-command
   "Shortcut function for sending `command` into the `command-chan` of a `renderer`"
   [{:keys [command-chan] :as renderer} command]
   (>!! command-chan command))
 
-; TODO rename layers to state
+(s/fdef execute
+  :args (s/cat :command :render/command
+               :state :render/state
+               :status :remder/status)
+  :ret (s/cat :new-state :render/state 
+              :new-status :render/status))
+
 (defmulti execute
   "Executes the given `command` given `state` and `status`, returning a vector containing the
   updated state and status"
-  (fn [command layers status] (:type command)))
+  (fn [command state status] (:type command)))
 
 (defmethod execute :start [_ state _]
   [state :running])
@@ -66,9 +82,9 @@
       (let [[state status :as loop-result]
             (if (= status :running)
               (alt!! command-chan ([command] (execute command state status)) 
-                     :default (let [{:keys [frame new-state]} (render-step state)]
+                     :default (let [{:keys [frame state]} (render-step state)]
                                 (display displayer frame)
-                                [new-state :running]))
+                                [state :running]))
               (execute (<!! command-chan) state status))]
         (if loop-result
           (recur state status)
@@ -92,5 +108,5 @@
   (component/system-map
    :renderer (component/using (map->Renderer {})
                               [:displayer])
-   ;:displayer (d/map->ConsoleDisplayer {})))
+   ;:displayer (d/map->ConsoleDisplayer {})
    :displayer (d/new-fadecandy-displayer "localhost" 7890)))
